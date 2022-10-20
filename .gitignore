@@ -1,5 +1,5 @@
 
 .DS_Store
-CarpetMod/Dependencies
+CarpetMod/Dependencies/*
 CarpetMod/bin
 CarpetMod/obj
