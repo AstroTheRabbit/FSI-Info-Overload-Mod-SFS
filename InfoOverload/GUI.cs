@@ -18,17 +18,17 @@ using SFS.Cameras;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace CarpetMod
+namespace InfoOverload
 {
     public class FunctionButton
     {        
         public string displayName;
         public Window window;
         public bool active = false;
-        public Action<CarpetMod.FunctionButton> function;
+        public Action<InfoOverload.FunctionButton> function;
         public SFS.UI.ModGUI.Button button;
 
-        public FunctionButton(string name, Action<CarpetMod.FunctionButton> func, Window baseWindow, int positionOffset)
+        public FunctionButton(string name, Action<InfoOverload.FunctionButton> func, Window baseWindow, int positionOffset)
         {
             this.displayName = name;
             this.window = baseWindow;
@@ -75,7 +75,7 @@ namespace CarpetMod
         static void SetupGUIWorld()
         {
             worldButtons = new Dictionary<string, FunctionButton>();
-            worldHolder = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "CarpetMod GUI Holder World");
+            worldHolder = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "InfoOverload GUI Holder World");
             worldWindow = Builder.CreateWindow(worldHolder.transform, worldWindowID, 300, (Main.worldFunctions.Count + 1) * 55, 1130, 725, true, true, 0.95f, "Carpet Mod - World");
 
             for (int i = 0; i < Main.worldFunctions.Count; i++)
@@ -94,7 +94,7 @@ namespace CarpetMod
         static void SetupGUIBuild()
         {
             buildButtons = new Dictionary<string, FunctionButton>();
-            buildHolder = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "CarpetMod GUI Holder Build");
+            buildHolder = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "InfoOverload GUI Holder Build");
             buildWindow = Builder.CreateWindow(buildHolder.transform, buildWindowID, 300, (Main.buildFunctions.Count + 1) * 55, 415, 785, true, true, 0.95f, "Carpet Mod - Build");
 
             for (int i = 0; i < Main.buildFunctions.Count; i++)

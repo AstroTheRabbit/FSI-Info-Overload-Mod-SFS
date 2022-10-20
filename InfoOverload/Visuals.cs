@@ -18,7 +18,7 @@ using SFS.Cameras;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace CarpetMod
+namespace InfoOverload
 {
     public class Visualiser : MonoBehaviour
     {

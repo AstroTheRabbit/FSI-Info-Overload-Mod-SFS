@@ -18,17 +18,17 @@ using SFS.Cameras;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace CarpetMod
+namespace InfoOverload
 {
     public class Functions
     {
         public static Visualiser visualiser;
-        public static void DisplayPartColliders(CarpetMod.FunctionButton button)
+        public static void DisplayPartColliders(InfoOverload.FunctionButton button)
         {
             button.active = !button.active;
             button.button.gameObject.GetComponent<ButtonPC>().SetSelected(button.active);
         }
-        public static void DisplayDockingRange(CarpetMod.FunctionButton button)
+        public static void DisplayDockingRange(InfoOverload.FunctionButton button)
         {
             button.active = !button.active;
             button.button.gameObject.GetComponent<ButtonPC>().SetSelected(button.active);
@@ -100,7 +100,7 @@ namespace CarpetMod
                 )
             );
         }
-        public static void DisplayEngineHeat(CarpetMod.FunctionButton button)
+        public static void DisplayEngineHeat(InfoOverload.FunctionButton button)
         {
             button.active = !button.active;
             button.button.gameObject.GetComponent<ButtonPC>().SetSelected(button.active);
@@ -163,7 +163,7 @@ namespace CarpetMod
                 )
             );
         }
-        public static void DisplayCoM(CarpetMod.FunctionButton button)
+        public static void DisplayCoM(InfoOverload.FunctionButton button)
         {
             button.active = !button.active;
             button.button.gameObject.GetComponent<ButtonPC>().SetSelected(button.active);
@@ -219,7 +219,7 @@ namespace CarpetMod
             );
         }
 
-        public static void DisplayCoT(CarpetMod.FunctionButton button)
+        public static void DisplayCoT(InfoOverload.FunctionButton button)
         {
             button.active = !button.active;
             button.button.gameObject.GetComponent<ButtonPC>().SetSelected(button.active);
@@ -300,7 +300,7 @@ namespace CarpetMod
             );
         }
 
-        public static void DisableOutlines(CarpetMod.FunctionButton button)
+        public static void DisableOutlines(InfoOverload.FunctionButton button)
         {
             button.active = !button.active;
             button.button.gameObject.GetComponent<ButtonPC>().SetSelected(button.active);
