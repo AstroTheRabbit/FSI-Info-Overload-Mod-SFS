@@ -1,22 +1,10 @@
-﻿using HarmonyLib;
-using ModLoader;
-using ModLoader.Helpers;
-using System;
+﻿using System;
 using System.Linq;
-using System.Globalization;
 using System.Collections.Generic;
-using SFS;
-using static SFS.Base;
-using SFS.Builds;
-using SFS.Parts;
-using SFS.Parts.Modules;
 using SFS.UI.ModGUI;
-using SFS.UI;
-using SFS.World;
-using SFS.World.Maps;
-using SFS.Cameras;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UITools;
 
 namespace InfoOverload
 {
@@ -39,71 +27,52 @@ namespace InfoOverload
 
     public static class GUI
     {
-        static readonly int worldWindowID = Builder.GetRandomID();
-        static readonly int buildWindowID = Builder.GetRandomID();
-        public static GameObject worldHolder;
-        public static GameObject buildHolder;
-        public static Window worldWindow;
-        public static Window buildWindow;
-
-        public static Dictionary<string, FunctionButton> worldButtons = new Dictionary<string, FunctionButton>();
-        public static Dictionary<string, FunctionButton> buildButtons = new Dictionary<string, FunctionButton>();
+        static readonly int windowIDButtons = Builder.GetRandomID();
+        static readonly int windowIDInfo = Builder.GetRandomID();
+        public static GameObject holderButtons;
+        public static GameObject holderInfo;
+        public static Window windowButtons;
+        public static Window windowInfo;
+        public static Dictionary<string, FunctionButton> buttons = new Dictionary<string, FunctionButton>();
 
         public static void ManageGUI(Scene scene)
         {
             if (Functions.visualiser == null)
+            {
                 Functions.visualiser = new GameObject("Carpet Mod Visuals").AddComponent<Visualiser>();
                 Functions.visualiser.gameObject.SetActive(true);
                 GameObject.DontDestroyOnLoad(Functions.visualiser.gameObject);
-
-            if (scene.name == "World_PC")
-            {
-                if (worldHolder == null)
-                {
-                    SetupGUIWorld();
-                }
             }
-            else if (scene.name == "Build_PC")
+
+            if (holderButtons == null)
             {
-                if (buildHolder == null)
+                if (scene.name == "World_PC")
                 {
-                    SetupGUIBuild();
+                    SetupGUI(Main.worldFunctions);
+                }
+                else if (scene.name == "Build_PC")
+                {
+                    SetupGUI(Main.buildFunctions);
                 }
             }
         }
 
-        static void SetupGUIWorld()
+        static void SetupGUI(Dictionary<string, KeyValuePair<string, Action<InfoOverload.FunctionButton>>> functions)
         {
-            worldButtons = new Dictionary<string, FunctionButton>();
-            worldHolder = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "InfoOverload GUI Holder World");
-            worldWindow = Builder.CreateWindow(worldHolder.transform, worldWindowID, 300, (Main.worldFunctions.Count + 1) * 55, 1130, 725, true, true, 0.95f, "Carpet Mod - World");
+            holderButtons = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "InfoOverload GUI Buttons");
+            windowButtons = UITools.UIToolsBuilder.CreateClosableWindow(holderButtons.transform, windowIDButtons, 300, (functions.Count + 1) * 55, 1130, 725, true, true, 0.95f, "Info Overload");
 
-            for (int i = 0; i < Main.worldFunctions.Count; i++)
+            buttons = new Dictionary<string, FunctionButton>();
+            for (int i = 0; i < functions.Count; i++)
             {
-                worldButtons.Add(Main.worldFunctions.ElementAt(i).Key, 
-                    new FunctionButton(
-                        Main.worldFunctions.ElementAt(i).Value.Key,
-                        Main.worldFunctions.ElementAt(i).Value.Value,
-                        worldWindow,
-                        -25 - (i * 55)
-                    )
-                );
-            }
-        }
-
-        static void SetupGUIBuild()
-        {
-            buildButtons = new Dictionary<string, FunctionButton>();
-            buildHolder = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "InfoOverload GUI Holder Build");
-            buildWindow = Builder.CreateWindow(buildHolder.transform, buildWindowID, 300, (Main.buildFunctions.Count + 1) * 55, 415, 785, true, true, 0.95f, "Carpet Mod - Build");
-
-            for (int i = 0; i < Main.buildFunctions.Count; i++)
-            {
-                buildButtons.Add(Main.buildFunctions.ElementAt(i).Key, 
-                    new FunctionButton(
-                        Main.buildFunctions.ElementAt(i).Value.Key,
-                        Main.buildFunctions.ElementAt(i).Value.Value,
-                        buildWindow,
+                buttons.Add
+                (
+                    functions.ElementAt(i).Value.Key,
+                    new FunctionButton
+                    (
+                        functions.ElementAt(i).Value.Key,
+                        functions.ElementAt(i).Value.Value,
+                        windowButtons,
                         -25 - (i * 55)
                     )
                 );

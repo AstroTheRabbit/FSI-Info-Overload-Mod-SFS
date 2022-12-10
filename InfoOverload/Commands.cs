@@ -23,11 +23,6 @@ namespace InfoOverload
     public class Functions
     {
         public static Visualiser visualiser;
-        public static void DisplayPartColliders(InfoOverload.FunctionButton button)
-        {
-            button.active = !button.active;
-            button.button.gameObject.GetComponent<ButtonPC>().SetSelected(button.active);
-        }
         public static void DisplayDockingRange(InfoOverload.FunctionButton button)
         {
             button.active = !button.active;
@@ -57,23 +52,17 @@ namespace InfoOverload
                                 Color indicatorColor = Color.magenta;
                                 if (port.isDockable.Value)
                                 {
-                                    if (Mathf.Sign(port.forceMultiplier.Value) == -1f)
-                                    {
-                                        indicatorColor = Color.red;
-                                    }
-                                    else
-                                    {
-                                        indicatorColor = Color.green;
-                                    }
+                                    indicatorColor = port.forceMultiplier.Value < 0 ? Color.red : Color.green;
                                 }
 
                                 GLDrawer.DrawCircle(port.transform.position, 0.05f, 20, indicatorColor);
+                                float radius = port.pullDistance * Mathf.Max(Mathf.Abs(port.trigger.transform.lossyScale.x), Mathf.Abs(port.trigger.transform.lossyScale.y));
                                 for (float i = 0; i < resolution; i++)
                                 {
                                     float angle = (i/resolution) * 2 * Mathf.PI;
                                     float theta = ((i+1)/resolution) * 2 * Mathf.PI;
-                                    Vector2 pos1 = port.transform.TransformPoint(new Vector2(Mathf.Cos(angle) * port.pullDistance, Mathf.Sin(angle) * port.pullDistance));
-                                    Vector2 pos2 = port.transform.TransformPoint(new Vector2(Mathf.Cos(theta) * port.pullDistance, Mathf.Sin(theta) * port.pullDistance));
+                                    Vector2 pos1 = new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius) + (Vector2) port.transform.position;
+                                    Vector2 pos2 = new Vector2(Mathf.Cos(theta) * radius, Mathf.Sin(theta) * radius) + (Vector2) port.transform.position;
                                     GLDrawer.DrawLine(pos1, pos2, indicatorColor, 0.03f);
                                 }
 
@@ -93,72 +82,7 @@ namespace InfoOverload
                     ),
                     delegate()
                     {
-                        if (!button.active || ((SceneManager.GetActiveScene().name == "Build_PC") && (button.window == GUI.worldWindow)) || ((SceneManager.GetActiveScene().name == "World_PC") && (button.window == GUI.buildWindow)))
-                            return true;
-                        return false;
-                    }
-                )
-            );
-        }
-        public static void DisplayEngineHeat(InfoOverload.FunctionButton button)
-        {
-            button.active = !button.active;
-            button.button.gameObject.GetComponent<ButtonPC>().SetSelected(button.active);
-
-            visualiser.AddVisual (
-                new Visualiser.Visual (
-                    "EngineHeat",
-                    new Visualiser.DrawerWrapper (
-                        delegate()
-                        {
-                            List<EngineModule> engines = new List<EngineModule>();
-
-                            if (SceneManager.GetActiveScene().name == "Build_PC")
-                            {
-                                engines = BuildManager.main.buildGrid.activeGrid.partsHolder.GetModules<EngineModule>().ToList();
-                            }
-                            else if (SceneManager.GetActiveScene().name == "World_PC")
-                            {
-                                foreach (Rocket rocket in GameManager.main.rockets)
-                                {
-                                    engines.AddRange(rocket.partHolder.GetModules<EngineModule>().ToList());
-                                }
-                            }
-
-                            foreach (EngineModule engine in engines)
-                            {
-                                if (engine.heatHolder != null)
-                                {
-                                    if (engine.heatHolder.GetComponentInChildren<BoxCollider2D>(true) != null)
-                                    {
-                                        Debug.Log(engine.heatHolder.transform.GetChild(0).lossyScale);
-                                        BoxCollider2D area = engine.heatHolder.GetComponentInChildren<BoxCollider2D>(true);
-                                        if (!Mathf.Approximately(area.transform.lossyScale.y, 0f))
-                                        {
-                                            Mesh mesh = area.CreateMesh(true, true);
-                                            // https://stackoverflow.com/a/33170847/14847250
-                                            Vector3 center = mesh.vertices.Aggregate(new Vector3(0,0,0), (s,v) => s + v) / (float)mesh.vertices.Count();
-                                            // https://stackoverflow.com/a/823537/14847250
-                                            List<Vector3> relativePoints = mesh.vertices.Select(v => v - center).ToList();
-                                            // https://stackoverflow.com/a/2122054/14847250
-                                            relativePoints.Sort((v1, v2) => Mathf.Atan2(v1.y, v1.x).CompareTo(Mathf.Atan2(v2.y, v2.x)));
-
-                                            for (int i = 0; i < relativePoints.Count()-1; i++)
-                                            {
-                                                GLDrawer.DrawLine(relativePoints[i] + center, relativePoints[i+1] + center, Color.red, 0.05f);
-                                            }
-                                            GLDrawer.DrawLine(relativePoints.Last() + center, relativePoints[0] + center, Color.red, 0.05f);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    ),
-                    delegate()
-                    {
-                        if (!button.active || ((SceneManager.GetActiveScene().name == "Build_PC") && (button.window == GUI.worldWindow)) || ((SceneManager.GetActiveScene().name == "World_PC") && (button.window == GUI.buildWindow)))
-                            return true;
-                        return false;
+                        return !button.active;
                     }
                 )
             );
@@ -211,14 +135,11 @@ namespace InfoOverload
                     ),
                     delegate()
                     {
-                        if (!button.active || ((SceneManager.GetActiveScene().name == "Build_PC") && (button.window == GUI.worldWindow)) || ((SceneManager.GetActiveScene().name == "World_PC") && (button.window == GUI.buildWindow)))
-                            return true;
-                        return false;
+                        return !button.active;
                     }
                 )
             );
         }
-
         public static void DisplayCoT(InfoOverload.FunctionButton button)
         {
             button.active = !button.active;
@@ -263,9 +184,9 @@ namespace InfoOverload
                             direction /= thrust;
                             Vector2 directionPoint = -((direction - position).normalized * 1.5f) + position;
                             Vector2 negativeDirectionPoint = ((direction - position).normalized / 1.5f) + position;
-                            GLDrawer.DrawCircle(position, 0.2f, 50, new Color(255f/255f, 100f/255f, 0f/255f));
-                            GLDrawer.DrawLine(position, directionPoint, new Color(255f/255f, 100f/255f, 0f/255f), 0.075f);
-                            GLDrawer.DrawLine(position, negativeDirectionPoint, new Color(255f/255f, 100f/255f, 0f/255f), 0.1f);
+                            GLDrawer.DrawCircle(position, 0.2f, 50, new Color(1, 100f/255f, 0));
+                            GLDrawer.DrawLine(position, directionPoint, new Color(1, 100f/255f, 0), 0.075f);
+                            GLDrawer.DrawLine(position, negativeDirectionPoint, new Color(1, 100f/255f, 0), 0.1f);
                             
                             if (SceneManager.GetActiveScene().name == "Build_PC")
                             {
@@ -292,18 +213,101 @@ namespace InfoOverload
                     ),
                     delegate()
                     {
-                        if (!button.active || ((SceneManager.GetActiveScene().name == "Build_PC") && (button.window == GUI.worldWindow)) || ((SceneManager.GetActiveScene().name == "World_PC") && (button.window == GUI.buildWindow)))
-                            return true;
-                        return false;
+                        return !button.active;
                     }
                 )
             );
         }
+        public static void DisplayEngineHeat(InfoOverload.FunctionButton button)
+        {
+            button.active = !button.active;
+            button.button.gameObject.GetComponent<ButtonPC>().SetSelected(button.active);
 
+            visualiser.AddVisual (
+                new Visualiser.Visual (
+                    "EngineHeat",
+                    new Visualiser.DrawerWrapper (
+                        delegate()
+                        {
+                            List<EngineModule> engines = new List<EngineModule>();
+
+                            if (SceneManager.GetActiveScene().name == "Build_PC")
+                            {
+                                engines = BuildManager.main.buildGrid.activeGrid.partsHolder.GetModules<EngineModule>().ToList();
+                            }
+                            else if (SceneManager.GetActiveScene().name == "World_PC")
+                            {
+                                foreach (Rocket rocket in GameManager.main.rockets)
+                                {
+                                    engines.AddRange(rocket.partHolder.GetModules<EngineModule>().ToList());
+                                }
+                            }
+
+                            foreach (EngineModule engine in engines)
+                            {
+                                if (engine.heatHolder != null)
+                                {
+                                    if (engine.heatHolder.GetComponentInChildren<BoxCollider2D>(true) != null)
+                                    {
+                                        if (SceneManager.GetActiveScene().name == "World_PC")
+                                        {
+                                            // TODO: Inaccurate box drawing, should use a different method.
+                                            BoxCollider2D area = engine.heatHolder.GetComponentInChildren<BoxCollider2D>(true);
+                                            if (!Mathf.Approximately(area.transform.lossyScale.y, 0f))
+                                            {
+                                                Mesh mesh = area.CreateMesh(true, true);
+                                                // https://stackoverflow.com/a/33170847/14847250
+                                                Vector3 center = mesh.vertices.Aggregate(new Vector3(0,0,0), (s,v) => s + v) / (float)mesh.vertices.Count();
+                                                // https://stackoverflow.com/a/823537/14847250
+                                                List<Vector3> relativePoints = mesh.vertices.Select(v => v - center).ToList();
+                                                // https://stackoverflow.com/a/2122054/14847250
+                                                relativePoints.Sort((v1, v2) => Mathf.Atan2(v1.y, v1.x).CompareTo(Mathf.Atan2(v2.y, v2.x)));
+
+                                                for (int i = 0; i < relativePoints.Count()-1; i++)
+                                                {
+                                                    GLDrawer.DrawLine(relativePoints[i] + center, relativePoints[i+1] + center, Color.red, 0.05f);
+                                                }
+                                                GLDrawer.DrawLine(relativePoints.Last() + center, relativePoints[0] + center, Color.red, 0.05f);
+                                            }
+                                        }
+                                        else if (SceneManager.GetActiveScene().name == "Build_PC")
+                                        {
+                                            BoxCollider2D area = engine.heatHolder.GetComponentInChildren<BoxCollider2D>(true);
+                                            List<Vector2> points = new List<Vector2>()
+                                            {
+                                                area.offset + new Vector2(area.size.x, area.size.y) / 2f,
+                                                area.offset + new Vector2(area.size.x, -area.size.y) / 2f,
+                                                area.offset + new Vector2(-area.size.x, -area.size.y) / 2f,
+                                                area.offset + new Vector2(-area.size.x, area.size.y) / 2f,
+                                            };
+                                            for (int i = 0; i < points.Count()-1; i++)
+                                            {
+                                                GLDrawer.DrawLine(engine.transform.TransformPoint(points[i]) + (area.transform.position - engine.transform.position), engine.transform.TransformPoint(points[i+1]) + (area.transform.position - engine.transform.position), Color.red, 0.05f);
+                                            }
+                                            GLDrawer.DrawLine(engine.transform.TransformPoint(points.Last()) + (area.transform.position - engine.transform.position), engine.transform.TransformPoint(points[0]) + (area.transform.position - engine.transform.position), Color.red, 0.05f);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ),
+                    delegate()
+                    {
+                        return !button.active;
+                    }
+                )
+            );
+        }
         public static void DisableOutlines(InfoOverload.FunctionButton button)
         {
             button.active = !button.active;
             button.button.gameObject.GetComponent<ButtonPC>().SetSelected(button.active);
         }
+        public static void DisplayPartColliders(InfoOverload.FunctionButton button)
+        {
+            button.active = !button.active;
+            button.button.gameObject.GetComponent<ButtonPC>().SetSelected(button.active);
+        }
+
     }
 }

@@ -88,13 +88,4 @@ namespace InfoOverload
             }
         }
     }
-
-    public class ClockwiseMeshSorter : IComparer<Vector3>
-    {
-        public int Compare(Vector3 v1, Vector3 v2)
-        {
-            return Mathf.Atan2(v1.x, v1.z).CompareTo(Mathf.Atan2(v2.x, v2.z));
-        }
-    }
-
 }
