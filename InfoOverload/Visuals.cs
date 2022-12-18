@@ -61,10 +61,10 @@ namespace InfoOverload
         {
             public delegate bool CheckDestroy();
             public string name;
-            public I_GLDrawer drawer;
+            public DrawerWrapper drawer;
             public CheckDestroy checkDestroy;
 
-            public Visual(string n, I_GLDrawer drawerFunc, CheckDestroy checkDestroyFunc)
+            public Visual(string n, DrawerWrapper drawerFunc, CheckDestroy checkDestroyFunc)
             {
                 this.name = n;
                 this.drawer = drawerFunc;

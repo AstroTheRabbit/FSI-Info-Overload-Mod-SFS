@@ -168,12 +168,15 @@ namespace InfoOverload
                             }
                             foreach (EngineModule engine in engines)
                             {
+                                float gimbal = 0;
+                                if (engine.hasGimbal && engine.Rb2d != null)
+                                    gimbal = (engine.gimbal.animationElements[0].transform.localEulerAngles.z ) * Mathf.Deg2Rad;
+
                                 // https://youtu.be/7j5yW5QDC2U?t=203
-                                float gimbal = (engine.gimbal.animationElements[0].transform.localEulerAngles.z + 180) * Mathf.Deg2Rad;
                                 Vector2 mx = new Vector2(Mathf.Cos(gimbal), Mathf.Sin(gimbal));
                                 Vector2 my = new Vector2(Mathf.Sin(gimbal), -Mathf.Cos(gimbal));
-                                Vector2 thrustPosition = (engine.thrustPosition.Value.x * mx) + (engine.thrustPosition.Value.y * my);
-                                Vector2 thrustNormal = (engine.thrustNormal.Value.x * mx) + (engine.thrustNormal.Value.y * my);
+                                Vector2 thrustPosition = -(engine.thrustPosition.Value.x * mx) - (engine.thrustPosition.Value.y * my);
+                                Vector2 thrustNormal = -(engine.thrustNormal.Value.x * mx) - (engine.thrustNormal.Value.y * my);
 
                                 GLDrawer.DrawLine(engine.transform.TransformPoint(thrustPosition), (Vector2)engine.transform.TransformPoint(thrustPosition - (thrustNormal / 2)), new Color(255f/255f, 100f/255f, 0f/255f), 0.075f);
                                 position += (Vector2)engine.transform.TransformPoint(thrustPosition) * engine.thrust.Value;
@@ -208,6 +211,53 @@ namespace InfoOverload
                                 GLDrawer.DrawCircle(selectedPosition, 0.2f, 50, Color.green);
                                 GLDrawer.DrawLine(selectedPosition, selectedDirectionPoint, Color.green, 0.075f);
                                 GLDrawer.DrawLine(selectedPosition, selectedNegativeDirectionPoint, Color.green, 0.1f);
+                            }
+                        }
+                    ),
+                    delegate()
+                    {
+                        return !button.active;
+                    }
+                )
+            );
+        }
+        public static void DisplayLoadDistance(InfoOverload.FunctionButton button)
+        {
+            button.active = !button.active;
+            button.button.gameObject.GetComponent<ButtonPC>().SetSelected(button.active);
+
+            visualiser.AddVisual (
+                new Visualiser.Visual (
+                    "LoadDistance",
+                    new Visualiser.DrawerWrapper (
+                        delegate()
+                        {
+                            Player player = PlayerController.main.player.Value;
+                            if (player is Rocket)
+                            {
+                                Rocket rocket = player as Rocket;
+                                Vector2 center = WorldView.ToLocalPosition(rocket.physics.location.position);
+                                int resolution = 100;
+                                float radius = (float)rocket.physics.loader.loadDistance * 1.2f; // Unload radius
+                                Debug.Log(Map.manager != null);
+                                for (float i = 0; i < resolution; i++)
+                                {
+                                    float angle = (i/resolution) * 2 * Mathf.PI;
+                                    float theta = ((i+1)/resolution) * 2 * Mathf.PI;
+                                    Vector2 pos1 = new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius) + center;
+                                    Vector2 pos2 = new Vector2(Mathf.Cos(theta) * radius, Mathf.Sin(theta) * radius) + center;
+                                    GLDrawer.DrawLine(pos1, pos2, Color.red, 20f);
+                                }
+
+                                radius = (float)rocket.physics.loader.loadDistance * 0.8f; // Load radius
+                                for (float i = 0; i < resolution; i++)
+                                {
+                                    float angle = (i/resolution) * 2 * Mathf.PI;
+                                    float theta = ((i+1)/resolution) * 2 * Mathf.PI;
+                                    Vector2 pos1 = new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius) + center;
+                                    Vector2 pos2 = new Vector2(Mathf.Cos(theta) * radius, Mathf.Sin(theta) * radius) + center;
+                                    GLDrawer.DrawLine(pos1, pos2, Color.green, 20f);
+                                }
                             }
                         }
                     ),
