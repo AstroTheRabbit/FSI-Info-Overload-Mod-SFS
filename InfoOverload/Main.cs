@@ -1,17 +1,15 @@
-﻿// using System.Linq;
-using System.Collections.Generic;
-// using System.Text.RegularExpressions;
+﻿using System.Collections.Generic;
 using HarmonyLib;
 using UnityEngine;
-// using UnityEngine.SceneManagement;
 using ModLoader;
 using ModLoader.Helpers;
 using SFS.IO;
 using SFS.Parsers.Json;
+using UITools;
 
 namespace InfoOverload
 {
-    public class Main : Mod//, IUpdatable
+    public class Main : Mod, IUpdatable
     {
         public static string modNameID = "fsi-info-overload";
 
