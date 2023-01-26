@@ -33,6 +33,9 @@
     <Reference Include="UnityEngine.InputLegacyModule">
       <HintPath>Dependencies/UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>Dependencies/Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="UITools">
       <HintPath>Dependencies/UITools.dll</HintPath>
     </Reference>

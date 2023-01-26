@@ -1,53 +1,63 @@
-﻿using HarmonyLib;
-using ModLoader;
-using ModLoader.Helpers;
-using System;
-using System.Linq;
-using System.Globalization;
+﻿using System;
 using System.Collections.Generic;
-using SFS;
-using static SFS.Base;
-using SFS.Builds;
-using SFS.Parts;
-using SFS.Parts.Modules;
-using SFS.UI.ModGUI;
-using SFS.UI;
-using SFS.World;
-using SFS.World.Maps;
-using SFS.Cameras;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace InfoOverload
 {
-    public class Visualiser : MonoBehaviour
+    public class Visual
     {
-        public static GameObject visualsHolder;
-        public delegate (bool keepVisual, Vector3[] points, AnimationCurve widthCurve, Gradient gradient, bool loop) UpdateVisuals();
-        public List<Visual> visuals = new List<Visual>();
+        public string name;
+        public Action Draw;
+        public Func<bool> CheckDestroy;
 
-        private void Start()
+        public Visual(string name, Action drawFunc, Func<bool> checkDestroyFunc)
         {
-            visualsHolder = this.gameObject;
+            this.name = name;
+            this.Draw = drawFunc;
+            this.CheckDestroy = checkDestroyFunc;
+            Visualiser.main.visuals.Add(this);
+        }
+    }
+    public class Visualiser : MonoBehaviour, I_GLDrawer
+    {
+        public static Visualiser main;
+        public List<Visual> visuals = new List<Visual>();
+        private void Awake()
+        {
+            main = this;
         }
 
-        public void AddVisual(Visual visual)
+        void I_GLDrawer.Draw()
         {
-            GLDrawer.Register(visual.drawer);
-            visuals.Add(visual);
+            List<Visual> erroredVisuals = new List<Visual>();
+            foreach (Visual v in visuals)
+            {
+                try
+                {
+                    v.Draw();
+                }
+                catch (SystemException e)
+                {
+                    Debug.LogError($"Visual \"{v.name}\" errored!\n{e}");
+                    erroredVisuals.Add(v);
+                }
+            }
+            visuals.RemoveAll(v => erroredVisuals.Contains(v));
         }
 
         private void Update()
         {
+            if (!(GLDrawer.main is null) && !GLDrawer.main.drawers.Contains(this))
+                GLDrawer.Register(this);
+            
             bool destroyedVisual;
             do
             {
                 destroyedVisual = false;
                 foreach (Visual visual in visuals)
                 {
-                    if (visual.checkDestroy())
+                    if (visual.CheckDestroy())
                     {
-                        GLDrawer.Unregister(visual.drawer);
                         visuals.Remove(visual);
                         destroyedVisual = true;
                         break;
@@ -55,37 +65,6 @@ namespace InfoOverload
                 }
                 
             } while (destroyedVisual);
-        }
-
-        public class Visual
-        {
-            public delegate bool CheckDestroy();
-            public string name;
-            public DrawerWrapper drawer;
-            public CheckDestroy checkDestroy;
-
-            public Visual(string n, DrawerWrapper drawerFunc, CheckDestroy checkDestroyFunc)
-            {
-                this.name = n;
-                this.drawer = drawerFunc;
-                this.checkDestroy = checkDestroyFunc;
-            }
-        }
-
-        public class DrawerWrapper : I_GLDrawer
-        {
-            public delegate void DrawerFunc();
-            public DrawerFunc drawerFunc;
-
-            public DrawerWrapper(DrawerFunc func)
-            {
-                this.drawerFunc = func;
-            }
-
-            void I_GLDrawer.Draw()
-            {
-                drawerFunc();
-            }
         }
     }
 }
