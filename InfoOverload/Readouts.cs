@@ -1,5 +1,4 @@
 using System;
-using HarmonyLib;
 using Newtonsoft.Json;
 using UnityEngine;
 using SFS.Builds;
@@ -14,14 +13,12 @@ using System.Collections.Generic;
 namespace InfoOverload
 {
     [Serializable]
-    public class Readout
+    public class Readout : Settings
     {
         [JsonIgnore]
         public string name;
         [JsonProperty("visible")]
         public bool displayReadout = true;
-        [JsonProperty("settings")]
-        public Dictionary<string, object> settings;
         public delegate (bool, string) UpdateInfo(Readout readout);
         [JsonIgnore]
         public UpdateInfo updater;
@@ -41,43 +38,10 @@ namespace InfoOverload
                 vars.Add(varName, defaultValue);
         }
 
-        public void LoadSavedSettings(Readout input)
+        public override void LoadOtherSettings(Settings input)
         {
-            this.displayReadout = input.displayReadout;
-            bool valueConverted = true; do
-            {
-                valueConverted = false;
-                foreach (var kvp in input.settings)
-                {
-                    if (kvp.Value is Newtonsoft.Json.Linq.JToken jt)
-                    {
-                        input.settings[kvp.Key] = jt.ToObject(this.settings[kvp.Key].GetType());
-                        valueConverted = true;
-                        break;
-                    }
-                    else if (kvp.Value is double d)
-                    {
-                        input.settings[kvp.Key] = (float)d;
-                        valueConverted = true;
-                        break;
-                    }
-                }
-            } while (valueConverted);
-            this.settings = input.settings;
-        }
-
-        public T GetSetting<T>(string name)
-        {
-            try
-            {
-                return (T)settings.GetTypedValue<T>(name);
-            }
-            catch (System.Exception)
-            {
-                throw;
-                // throw new UnityException($"Info Overload - Setting \"{name}\" in button \"{displayName}\" does not exist!");
-                // throw new UnityException($"Info Overload - Setting \"{name}\" in button \"{displayName}\" is of type {settings[name].GetType()}, not {nameof(T)}");
-            }
+            if (input is Readout readout)
+                this.displayReadout = readout.displayReadout;
         }
     }
     public class Readouts

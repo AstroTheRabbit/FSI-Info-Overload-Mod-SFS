@@ -1,11 +1,58 @@
 using System;
 using System.Globalization;
-using SFS.UI.ModGUI;
+using System.Collections.Generic;
+using HarmonyLib;
 using UnityEngine;
+using SFS.UI.ModGUI;
 using Type = SFS.UI.ModGUI.Type;
+using Newtonsoft.Json;
 
 namespace InfoOverload
 {
+    public abstract class Settings
+    {
+        [JsonProperty("settings")]
+        public Dictionary<string, object> settings;
+        public abstract void LoadOtherSettings(Settings otherSettings);
+        public T GetSetting<T>(string name)
+        {
+            try
+            {
+                return (T)settings.GetTypedValue<T>(name);
+            }
+            catch (System.Exception)
+            {
+                throw;
+                // throw new UnityException($"Info Overload - Setting \"{name}\" in button \"{displayName}\" does not exist!");
+                // throw new UnityException($"Info Overload - Setting \"{name}\" in button \"{displayName}\" is of type {settings[name].GetType()}, not {nameof(T)}");
+            }
+        }
+        public void LoadSavedSettings(Settings input)
+        {
+            bool valueConverted = true; do
+            {
+                valueConverted = false;
+                foreach (var kvp in input.settings)
+                {
+                    if (kvp.Value is Newtonsoft.Json.Linq.JToken jt)
+                    {
+                        input.settings[kvp.Key] = jt.ToObject(this.settings[kvp.Key].GetType());
+                        valueConverted = true;
+                        break;
+                    }
+                    else if (kvp.Value is double d)
+                    {
+                        input.settings[kvp.Key] = (float)d;
+                        valueConverted = true;
+                        break;
+                    }
+                }
+            } while (valueConverted);
+            this.settings = input.settings;
+            this.LoadOtherSettings(input);
+        }
+    }
+
     [Serializable]
     public class ExtraSettings
     {

@@ -8,13 +8,15 @@ namespace InfoOverload
     {
         public string name;
         public Action Draw;
+        public Action fixedUpdate;
         public Func<bool> CheckDestroy;
 
-        public Visual(string name, Action drawFunc, Func<bool> checkDestroyFunc)
+        public Visual(string name, Action drawFunc, Func<bool> checkDestroyFunc, Action fixedUpdateFunc = null)
         {
             this.name = name;
             this.Draw = drawFunc;
             this.CheckDestroy = checkDestroyFunc;
+            this.fixedUpdate = fixedUpdateFunc;
             Visualiser.main.visuals.Add(this);
         }
     }
@@ -35,6 +37,25 @@ namespace InfoOverload
                 try
                 {
                     v.Draw();
+                }
+                catch (SystemException e)
+                {
+                    Debug.LogError($"Visual \"{v.name}\" errored!\n{e}");
+                    erroredVisuals.Add(v);
+                }
+            }
+            visuals.RemoveAll(v => erroredVisuals.Contains(v));
+        }
+
+        private void FixedUpdate()
+        {
+            List<Visual> erroredVisuals = new List<Visual>();
+            foreach (Visual v in visuals)
+            {
+                try
+                {
+                    if (v.fixedUpdate != null)
+                        v.fixedUpdate();
                 }
                 catch (SystemException e)
                 {

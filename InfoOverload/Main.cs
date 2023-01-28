@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using HarmonyLib;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using ModLoader;
 using ModLoader.Helpers;
 using SFS.IO;
@@ -128,6 +131,7 @@ namespace InfoOverload
             {"dockingPorts",            Functions.DockingPorts()},
             {"displayCoM",              Functions.DisplayCoM()},
             {"displayCoT",              Functions.DisplayCoT()},
+            {"engineHeat",              Functions.EngineHeat()},
             {"displayPartColliders",    Functions.DisplayPartColliders()},
             {"displayTerrainColliders", Functions.DisplayTerrainColliders()},
             {"aeroOverlay",             Functions.AeroOverlay()},
@@ -141,6 +145,7 @@ namespace InfoOverload
             {"dockingPorts",            Functions.DockingPorts()},
             {"displayCoM",              Functions.DisplayCoM()},
             {"displayCoT",              Functions.DisplayCoT()},
+            // {"engineHeat",              Functions.EngineHeat()},
             {"displayPartColliders",    Functions.DisplayPartColliders()},
             {"disableOutlines",         Functions.ChangeOutlines()},
         };

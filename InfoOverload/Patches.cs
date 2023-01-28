@@ -9,21 +9,21 @@ namespace InfoOverload
 {
     public static class Patches
     {
-        public static Func<bool> changeOutlines = () => false;
-        public static Func<bool> disableOutlines = () => false;
-        public static Func<Color> outlinesColor;
-        public static Func<float> outlinesWidth = () => 0.1f;
-        public static Func<bool> enableFreeCam = () => false;
-        public static Func<bool> lockFreeCam = () => true;
+        public static bool changeOutlines = false;
+        public static bool disableOutlines = false;
+        public static Color outlinesColor;
+        public static float outlinesWidth = 0.1f;
+        public static bool enableFreeCam = false;
+        public static bool lockFreeCam = true;
 
         [HarmonyPatch(typeof(BuildSelector), "DrawRegionalOutline")]
         class DisableOutlines
         {
             static bool Prefix(ref Color color, ref float width)
             {
-                color = changeOutlines() ? outlinesColor() : color;
-                width = changeOutlines() ? outlinesWidth() : width;
-                return !(changeOutlines() && disableOutlines());
+                color = changeOutlines ? outlinesColor : color;
+                width = changeOutlines ? outlinesWidth : width;
+                return !(changeOutlines && disableOutlines);
             }
         }
 
@@ -34,7 +34,7 @@ namespace InfoOverload
             {
                 static bool Prefix(Vector2 oldValue, Vector2 newValue, ref Vector2 __result, PlayerController __instance)
                 {
-                    if (__instance.player.Value is Rocket rocket && newValue.magnitude >= rocket.physics.loader.loadDistance * 1.2f && lockFreeCam())
+                    if (__instance.player.Value is Rocket rocket && newValue.magnitude >= rocket.physics.loader.loadDistance * 1.2f && lockFreeCam)
                     {
                         __result = (newValue.normalized * (float)rocket.physics.loader.loadDistance * 1.2f) - newValue.normalized;
                     }
@@ -42,7 +42,7 @@ namespace InfoOverload
                     {
                         __result = newValue;
                     }
-                    return !enableFreeCam();
+                    return !enableFreeCam;
                 }
             }
             // [HarmonyPatch(typeof(WorldView), "PositionCamera")]

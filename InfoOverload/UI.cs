@@ -127,29 +127,47 @@ namespace InfoOverload
             DestroySettings();
             if (scene.name == "World_PC" || scene.name == "Build_PC")
                 CreateSettings();
+            
+            KeepWindowInView(windowFunctions);
+            KeepWindowInView(windowReadouts);
+            KeepWindowInView(windowSettings);
         }
 
-
+        static void KeepWindowInView(Window window)
+        {
+            try
+            {
+                RectTransform rect = window.rectTransform;
+                Vector2 center = rect.rect.center / 2;
+                rect.position = Vector2.Max((Vector2)rect.position + center, Vector2.zero) - center;
+                rect.position = Vector2.Min((Vector2)rect.position + center, new Vector2(Screen.width, Screen.height)) - center;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError(new System.Exception($"Info Overload - Error when moving window!", e));
+            }
+        }
 
         static void SetupFunctionsUI(Dictionary<string, Function> _functions)
         {
             functions = _functions;
 
             holderFunctions = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "InfoOverload UI - Functions");
-            windowFunctions = UITools.UIToolsBuilder.CreateClosableWindow(holderFunctions.transform, windowIDFunctions, 300, ((functions.Where(f => f.Value.enabledByPlayer).Count() + 1) * 55) + 5, 1130, 725, true, true, 0.95f, "Info Overload");
+            windowFunctions = UITools.UIToolsBuilder.CreateClosableWindow(holderFunctions.transform, windowIDFunctions, 300, ((functions.Where(f => f.Value.enabledByPlayer).Count() + 1) * 55) + 5, +155, 0, true, true, 0.95f, "Info Overload");
             var layoutGroup = windowFunctions.CreateLayoutGroup(SFS.UI.ModGUI.Type.Vertical, spacing: 5, padding: new RectOffset(5, 5, 5, 20));
 
             foreach (var function in functions.Values)
             {
                 function.CreateButton(windowFunctions);
             }
+            windowFunctions.RegisterOnDropListener(() => { KeepWindowInView(windowFunctions); });
         }
         private static void SetupInfoUI(Dictionary<string, Readout> _readouts)
         {
             readouts = _readouts;
             
             holderReadouts = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "InfoOverload UI - Info");
-            windowReadouts = UITools.UIToolsBuilder.CreateClosableWindow(holderReadouts.transform, windowIDReadouts, 450, 700, 900, 725, true, true, 0.95f, "Info Overload");
+            windowReadouts = UITools.UIToolsBuilder.CreateClosableWindow(holderReadouts.transform, windowIDReadouts, 450, 700, -230, 0, true, true, 0.95f, "Info Overload");
             windowReadouts.CreateLayoutGroup(SFS.UI.ModGUI.Type.Vertical, TextAnchor.UpperCenter).childScaleHeight = true;    
 
             infoTextbox = Builder.CreateLabel(windowReadouts, 440, 0);
@@ -159,6 +177,7 @@ namespace InfoOverload
             infoTextbox.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             windowReadouts.EnableScrolling(SFS.UI.ModGUI.Type.Vertical);
+            windowReadouts.RegisterOnDropListener(() => { KeepWindowInView(windowReadouts); });
         }
 
         static void CreateSettings()
@@ -170,6 +189,7 @@ namespace InfoOverload
             holderSettings = Builder.CreateHolder(Builder.SceneToAttach.BaseScene, "InfoOverload UI - Settings");
             windowSettings = UITools.UIToolsBuilder.CreateClosableWindow(holderSettings.transform, windowIDSettings, windowWidth, 800, -700, 450, true, true, 0.95f, "Info Overload Settings");
             windowSettings.RegisterPermanentSaving(Main.modNameID + ".settings");
+            windowSettings.RegisterOnDropListener(() => { KeepWindowInView(windowSettings); });
 
             windowSettings.EnableScrolling(Type.Vertical);
             Builder.CreateButton(windowSettings.rectTransform, 90, 40, (int)(windowSettings.Size.x / 2f - 50f), -25, SaveSettings, "Save");
@@ -229,6 +249,7 @@ namespace InfoOverload
             {
                 UI.extraSettings.readoutsWindowHeight = InputHelpers.StringToInt(heightInput.textInput.Text = InputHelpers.VerifyIntInput(heightInput.textInput.Text));
             }
+
         }
 
         static void DestroySettings()

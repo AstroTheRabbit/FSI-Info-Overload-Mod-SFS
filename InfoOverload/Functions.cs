@@ -16,7 +16,7 @@ using UnityEngine.SceneManagement;
 
 namespace InfoOverload
 {
-    public class Function
+    public class Function : Settings
     {
         [JsonProperty("button_name")]
         public string displayName;
@@ -52,14 +52,10 @@ namespace InfoOverload
                 }
             }
         }
-        [JsonProperty("settings")]
-        public Dictionary<string, object> settings;
         [JsonIgnore]
         public Action<Function> func;
         [JsonIgnore]
         public Button button;
-        public Function(){}
-
         public Function(string displayName, Action<Function> func, Dictionary<string, object> settings)
         {
             this.displayName = displayName;
@@ -71,44 +67,14 @@ namespace InfoOverload
         {
             button = Builder.CreateButton(window, 290, 50, onClick: () => this.func(this), text: this.displayName);
         }
-        public T GetSetting<T>(string name)
-        {
-            try
-            {
-                return (T)settings.GetTypedValue<T>(name);
-            }
-            catch (System.Exception)
-            {
-                throw;
-                // throw new UnityException($"Info Overload - Setting \"{name}\" in button \"{displayName}\" does not exist!");
-                // throw new UnityException($"Info Overload - Setting \"{name}\" in button \"{displayName}\" is of type {settings[name].GetType()}, not {nameof(T)}");
-            }
-        }
 
-        public void LoadSavedSettings(Function input)
+        public override void LoadOtherSettings(Settings input)
         {
-            this.displayName = input.displayName;
-            this.enabledByPlayer = input.enabledByPlayer;
-            bool valueConverted = true; do
+            if (input is Function function)
             {
-                valueConverted = false;
-                foreach (var kvp in input.settings)
-                {
-                    if (kvp.Value is Newtonsoft.Json.Linq.JToken jt)
-                    {
-                        input.settings[kvp.Key] = jt.ToObject(this.settings[kvp.Key].GetType());
-                        valueConverted = true;
-                        break;
-                    }
-                    else if (kvp.Value is double d)
-                    {
-                        input.settings[kvp.Key] = (float)d;
-                        valueConverted = true;
-                        break;
-                    }
-                }
-            } while (valueConverted);
-            this.settings = input.settings;
+                this.displayName = function.displayName;
+                this.enabledByPlayer = function.enabledByPlayer;
+            }
         }
     }
     public class Functions
@@ -122,7 +88,7 @@ namespace InfoOverload
                 new Visual
                 (
                     "DockingPorts",
-                    delegate()
+                    delegate
                     {
                         List<DockingPortModule> ports = new List<DockingPortModule>();
                         float resolution = function.GetSetting<float>("Range Circle Detail");
@@ -135,7 +101,8 @@ namespace InfoOverload
                         {
                             foreach (Rocket rocket in GameManager.main.rockets)
                             {
-                                ports.AddRange(rocket.partHolder.GetModules<DockingPortModule>().ToList());
+                                if (rocket.physics.loader.Loaded)
+                                    ports.AddRange(rocket.partHolder.GetModules<DockingPortModule>().ToList());
                             }
                         }
 
@@ -171,7 +138,7 @@ namespace InfoOverload
                             }
                         }
                     },
-                    delegate()
+                    delegate
                     {
                         return !function.ButtonActive || !function.enabledByPlayer;
                     }
@@ -195,7 +162,7 @@ namespace InfoOverload
                 new Visual
                 (
                     "CoM",
-                        delegate()
+                        delegate
                         {
                             Vector2 centerOfMass = Vector2.zero;
                             if (SceneManager.GetActiveScene().name == "Build_PC")
@@ -235,7 +202,7 @@ namespace InfoOverload
                                 GLDrawer.DrawCircle(selectedCenterOfMass, 0.25f, 50, function.GetSetting<Color>("Selected CoM Color"));
                             }
                         },
-                    delegate()
+                    delegate
                     {
                         return !function.ButtonActive || !function.enabledByPlayer;
                     }
@@ -258,7 +225,7 @@ namespace InfoOverload
                 new Visual
                 (
                     "CoT",
-                        delegate()
+                        delegate
                         {
                             Color color = function.GetSetting<Color>("CoT Color");
                             Color selectedColor = function.GetSetting<Color>("Selected CoT Color");
@@ -351,7 +318,7 @@ namespace InfoOverload
                                 GLDrawer.DrawLine(selectedPosition, selectedNegativeDirectionPoint, selectedColor, 0.1f);
                             }
                         },
-                    delegate()
+                    delegate
                     {
                         return !function.ButtonActive || !function.enabledByPlayer;
                     }
@@ -373,7 +340,7 @@ namespace InfoOverload
                     new Visual
                     (
                     "LoadDistance",
-                        delegate()
+                        delegate
                         {
                             if (PlayerController.main.player.Value is Rocket rocket)
                             {
@@ -403,7 +370,7 @@ namespace InfoOverload
                                 }
                             }
                         },
-                    delegate()
+                    delegate
                     {
                         return !function.ButtonActive || !function.enabledByPlayer;
                     }
@@ -434,7 +401,7 @@ namespace InfoOverload
                 new Visual
                 (
                     "PartColliders",
-                    delegate()
+                    delegate
                     {
                         List<ColliderModule> terrainColliders = new List<ColliderModule>();
                         List<ColliderModule> colliders = new List<ColliderModule>();
@@ -543,7 +510,7 @@ namespace InfoOverload
                             }
                         }
                     },
-                    delegate()
+                    delegate
                     {
                         return !function.ButtonActive || !function.enabledByPlayer;
                     }
@@ -564,21 +531,21 @@ namespace InfoOverload
                 new Visual
                 (
                     "TerrainColliders",
-                        delegate()
+                    delegate
+                    {
+                        Color color = function.GetSetting<Color>("Collider Color");
+                        foreach (Transform child in TerrainColliderManager.main.transform)
                         {
-                            Color color = function.GetSetting<Color>("Collider Color");
-                            foreach (Transform child in TerrainColliderManager.main.transform)
+                            if (child.GetComponent<PolygonCollider2D>() is PolygonCollider2D col)
+                            for (int i = 0; i < col.points.Length; i++)
                             {
-                                if (child.GetComponent<PolygonCollider2D>() is PolygonCollider2D col)
-                                for (int i = 0; i < col.points.Length; i++)
-                                {
-                                    Vector2 p1 = child.TransformPoint(col.points[i] + col.offset);
-                                    Vector2 p2 = child.TransformPoint(col.points[i+1 != col.points.Length ? i+1 : 0] + col.offset);
-                                    GLDrawer.DrawLine(p1, p2, color, Mathf.Min(0.01f * WorldView.main.viewDistance, 5));
-                                }
+                                Vector2 p1 = child.TransformPoint(col.points[i] + col.offset);
+                                Vector2 p2 = child.TransformPoint(col.points[i+1 != col.points.Length ? i+1 : 0] + col.offset);
+                                GLDrawer.DrawLine(p1, p2, color, Mathf.Min(0.01f * WorldView.main.viewDistance, 5));
                             }
-                        },
-                    delegate()
+                        }
+                    },
+                    delegate
                     {
                         return !function.ButtonActive || !function.enabledByPlayer;
                     }
@@ -594,11 +561,23 @@ namespace InfoOverload
             "Change Outlines",
             delegate(Function function)
             {
-                function.ButtonActive = !function.ButtonActive;
-                Patches.changeOutlines = () => function.ButtonActive;
-                Patches.outlinesColor = () => function.GetSetting<Color>("Outline Color");
-                Patches.outlinesWidth = () => function.GetSetting<float>("Outline Width");
-                Patches.disableOutlines = () => function.GetSetting<bool>("Disable Outlines");
+                Patches.changeOutlines = function.ButtonActive = !function.ButtonActive;
+                new Visual
+                (
+                    "ChangeOutlines",
+                    delegate {},
+                    delegate
+                    {
+                        Patches.outlinesColor = function.GetSetting<Color>("Outline Color");
+                        Patches.outlinesWidth = function.GetSetting<float>("Outline Width");
+                        Patches.disableOutlines = function.GetSetting<bool>("Disable Outlines");
+
+                        if (!function.ButtonActive || !function.enabledByPlayer)
+                            Patches.changeOutlines = false;
+
+                        return !function.ButtonActive || !function.enabledByPlayer;
+                    }
+                );
             },
             new Dictionary<string, object>()
             {
@@ -612,11 +591,23 @@ namespace InfoOverload
             "Free Cam",
             delegate(Function function)
             {
-                function.ButtonActive = !function.ButtonActive;
-                Patches.enableFreeCam = () => function.ButtonActive;
-                Patches.lockFreeCam = () => function.GetSetting<bool>("Lock To Unload Distance");
-                if (!Patches.enableFreeCam()) // Reset camera pos when free cam is turned off.
+                Patches.enableFreeCam = function.ButtonActive = !function.ButtonActive;
+                if (!Patches.enableFreeCam) // Reset camera pos when free cam is turned off.
                     PlayerController.main.cameraOffset.Value = Vector2.zero;
+                new Visual
+                (
+                    "FreeCam",
+                    delegate {},
+                    delegate
+                    {
+                        Patches.lockFreeCam = function.GetSetting<bool>("Lock To Unload Distance");
+
+                        if (!function.ButtonActive || !function.enabledByPlayer)
+                            Patches.enableFreeCam = false;
+                        
+                        return !function.ButtonActive || !function.enabledByPlayer;
+                    }
+                );
             },
             new Dictionary<string, object>()
             {
@@ -632,57 +623,57 @@ namespace InfoOverload
                 new Visual
                 (
                     "AeroOverlay",
-                        delegate()
+                    delegate
+                    {
+                        if (SceneManager.GetActiveScene().name == "World_PC")
                         {
-                            if (SceneManager.GetActiveScene().name == "World_PC")
+                            if (PlayerController.main.player.Value is Rocket rocket)
                             {
-                                if (PlayerController.main.player.Value is Rocket rocket)
+                                Location location = rocket.location.Value;
+                                if (location.velocity.Mag_MoreThan(0.001))
                                 {
-                                    Location location = rocket.location.Value;
-                                    if (location.velocity.Mag_MoreThan(0.001))
+                                    float angle = (float)location.velocity.AngleRadians - (Mathf.PI / 2f);
+                                    Matrix2x2 rotate = Matrix2x2.Angle(-angle);
+                                    Matrix2x2 localToWorld = Matrix2x2.Angle(angle);
+
+                                    var surfaces = Aero_Rocket.GetDragSurfaces(rocket.partHolder, rotate);
+                                    var exposedSurfaces = AeroModule.GetExposedSurfaces(surfaces);
+
+                                    var tuple = Traverse.Create<AeroModule>().Method("CalculateDragForce", exposedSurfaces).GetValue<(float drag, Vector2 centerOfDrag)>();
+                                    Vector2 centerOfDragWorld = localToWorld * tuple.centerOfDrag;
+                                    centerOfDragWorld = Vector2.Lerp(rocket.rb2d.worldCenterOfMass, centerOfDragWorld, 0.2f);
+
+                                    float density = (float)location.planet.GetAtmosphericDensity(location.Height);
+                                    float force = tuple.drag * 1.5f * (float)location.velocity.sqrMagnitude;
+                                    Vector2 forceVector = -location.velocity.ToVector2.normalized * (force * density);
+                                    
+                                    if (function.GetSetting<bool>("Show All Surfaces"))
                                     {
-                                        float angle = (float)location.velocity.AngleRadians - (Mathf.PI / 2f);
-                                        Matrix2x2 rotate = Matrix2x2.Angle(-angle);
-                                        Matrix2x2 localToWorld = Matrix2x2.Angle(angle);
-
-                                        var surfaces = Aero_Rocket.GetDragSurfaces(rocket.partHolder, rotate);
-                                        var exposedSurfaces = AeroModule.GetExposedSurfaces(surfaces);
-
-                                        var tuple = Traverse.Create<AeroModule>().Method("CalculateDragForce", exposedSurfaces).GetValue<(float drag, Vector2 centerOfDrag)>();
-                                        Vector2 centerOfDragWorld = localToWorld * tuple.centerOfDrag;
-                                        centerOfDragWorld = Vector2.Lerp(rocket.rb2d.worldCenterOfMass, centerOfDragWorld, 0.2f);
-
-                                        float density = (float)location.planet.GetAtmosphericDensity(location.Height);
-                                        float force = tuple.drag * 1.5f * (float)location.velocity.sqrMagnitude;
-                                        Vector2 forceVector = -location.velocity.ToVector2.normalized * (force * density);
-                                        
-                                        if (function.GetSetting<bool>("Show All Surfaces"))
+                                        Color color = function.GetSetting<Color>("All Surfaces Color");
+                                        foreach (var surface in surfaces)
                                         {
-                                            Color color = function.GetSetting<Color>("All Surfaces Color");
-                                            foreach (var surface in surfaces)
-                                            {
-                                                GLDrawer.DrawLine(localToWorld * surface.line.start, localToWorld * surface.line.end, color, 0.1f);
-                                            }
+                                            GLDrawer.DrawLine(localToWorld * surface.line.start, localToWorld * surface.line.end, color, 0.1f);
                                         }
-                                        if (function.GetSetting<bool>("Show Exposed Surfaces"))
+                                    }
+                                    if (function.GetSetting<bool>("Show Exposed Surfaces"))
+                                    {
+                                        Color color = function.GetSetting<Color>("Exposed Surfaces Color");
+                                        foreach (var surface in exposedSurfaces)
                                         {
-                                            Color color = function.GetSetting<Color>("Exposed Surfaces Color");
-                                            foreach (var surface in exposedSurfaces)
-                                            {
-                                                GLDrawer.DrawLine(localToWorld * surface.line.start, localToWorld * surface.line.end, color, 0.1f);
-                                            }
+                                            GLDrawer.DrawLine(localToWorld * surface.line.start, localToWorld * surface.line.end, color, 0.1f);
                                         }
-                                        if (function.GetSetting<bool>("Show Drag Force Line"))
-                                        {
-                                            Color color = function.GetSetting<Color>("Drag Force Line Color");
-                                            GLDrawer.DrawLine(centerOfDragWorld, (function.GetSetting<float>("Drag Force Line Scale") * forceVector) + centerOfDragWorld, color, 0.1f);
-                                            GLDrawer.DrawCircle(centerOfDragWorld, 0.25f, 20, color);
-                                        }
+                                    }
+                                    if (function.GetSetting<bool>("Show Drag Force Line"))
+                                    {
+                                        Color color = function.GetSetting<Color>("Drag Force Line Color");
+                                        GLDrawer.DrawLine(centerOfDragWorld, (function.GetSetting<float>("Drag Force Line Scale") * forceVector) + centerOfDragWorld, color, 0.1f);
+                                        GLDrawer.DrawCircle(centerOfDragWorld, 0.25f, 20, color);
                                     }
                                 }
                             }
-                        },
-                    delegate()
+                        }
+                    },
+                    delegate
                     {
                         return !function.ButtonActive || !function.enabledByPlayer;
                     }
@@ -697,6 +688,66 @@ namespace InfoOverload
                 {"Exposed Surfaces Color", Color.red},
                 {"All Surfaces Color", new Color(0.5f, 0, 0)},
                 {"Drag Force Line Color", Color.red},
+            }
+        );
+
+        public static Function EngineHeat() => new Function
+        (
+            "Engine Heat",
+            delegate(Function function)
+            {
+                function.ButtonActive = !function.ButtonActive;
+                new Visual
+                (
+                    "EngineHeat",
+                    delegate
+                    {
+                        List<EngineModule> engines = new List<EngineModule>();
+                        if (SceneManager.GetActiveScene().name == "Build_PC")
+                        {
+                            engines = BuildManager.main.buildGrid.activeGrid.partsHolder.GetModules<EngineModule>().ToList();
+                        }
+                        else if (SceneManager.GetActiveScene().name == "World_PC")
+                        {
+                            foreach (Rocket rocket in GameManager.main.rockets)
+                            {
+                                if (rocket.physics.loader.Loaded)
+                                    engines.AddRange(rocket.partHolder.GetModules<EngineModule>().ToList());
+                            }
+                        }
+                        
+                        Color color = function.GetSetting<Color>("Border Color");
+                        foreach (EngineModule engine in engines)
+                        {
+                            BoxCollider2D col = engine.GetComponentInChildren<BoxCollider2D>(true);
+                            if (col == null || !engine.engineOn.Value)
+                                continue;
+
+                            float top = col.offset.y + (col.size.y / 2f);
+                            float bottom = col.offset.y - (col.size.y / 2f);
+                            float left = col.offset.x - (col.size.x / 2f);
+                            float right = col.offset.x + (col.size.x /2f);
+                            
+                            Vector2 topLeft = col.transform.TransformPoint(new Vector2(left, top));
+                            Vector2 topRight = col.transform.TransformPoint(new Vector2(right, top));
+                            Vector2 btmLeft = col.transform.TransformPoint(new Vector2(left, bottom));
+                            Vector2 btmRight = col.transform.TransformPoint(new Vector2(right, bottom));
+
+                            GLDrawer.DrawLine(topLeft, topRight, color, 0.1f);
+                            GLDrawer.DrawLine(btmRight, topRight, color, 0.1f);
+                            GLDrawer.DrawLine(btmRight, btmLeft, color, 0.1f);
+                            GLDrawer.DrawLine(topLeft, btmLeft, color, 0.1f);
+                        }
+                    },
+                    delegate
+                    {
+                        return !function.ButtonActive || !function.enabledByPlayer;
+                    }
+                );
+            },
+            new Dictionary<string, object>()
+            {
+                {"Border Color", new Color(1f, 0.5f, 0f)}
             }
         );
     }
