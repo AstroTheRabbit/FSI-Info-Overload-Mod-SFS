@@ -646,6 +646,20 @@ namespace InfoOverload
                                     float density = (float)location.planet.GetAtmosphericDensity(location.Height);
                                     float force = tuple.drag * 1.5f * (float)location.velocity.sqrMagnitude;
                                     Vector2 forceVector = -location.velocity.ToVector2.normalized * (force * density);
+
+                                    if (function.GetSetting<bool>("Include Parachute Drag"))
+                                    {
+                                        ParachuteModule[] modules = rocket.partHolder.GetModules<ParachuteModule>();
+                                        foreach (ParachuteModule parachuteModule in modules)
+                                        {
+                                            if (parachuteModule.targetState.Value == 1f || parachuteModule.targetState.Value == 2f)
+                                            {
+                                                float num = (float)WorldView.ToGlobalVelocity(rocket.rb2d.GetPointVelocity(parachuteModule.parachute.position)).sqrMagnitude * parachuteModule.drag.Evaluate(parachuteModule.state.Value);
+                                                centerOfDragWorld = (centerOfDragWorld * force + (Vector2)parachuteModule.parachute.position * num) / (force + num);
+                                                force += num;
+                                            }
+                                        }
+                                    }
                                     
                                     if (function.GetSetting<bool>("Show All Surfaces"))
                                     {
@@ -683,6 +697,7 @@ namespace InfoOverload
             {
                 {"Show Exposed Surfaces", true},
                 {"Show All Surfaces", false},
+                {"Include Parachute Drag", true},
                 {"Show Drag Force Line", true},
                 {"Drag Force Line Scale", 0.125f},
                 {"Exposed Surfaces Color", Color.red},
