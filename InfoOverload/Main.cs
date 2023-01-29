@@ -28,7 +28,7 @@ namespace InfoOverload
         public override string DisplayName => "FSI's Info Overload";
         public override string Author => "pixelgaming579";
         public override string MinimumGameVersionNecessary => "1.5.9.8";
-        public override string ModVersion => "1.0";
+        public override string ModVersion => "1.1";
         public override string Description => "Visualises colliders, ranges and other invisible/technical stuff. Made for Fusion Space Industries.";
         public override string IconLink => "https://i.imgur.com/D6heH5y.png";
         public override Dictionary<string, string> Dependencies { get; } = new Dictionary<string, string> { { "UITools", "1.1.1" } };
