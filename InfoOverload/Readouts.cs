@@ -75,6 +75,77 @@ namespace InfoOverload
             },
             new Dictionary<string, object>()
         );
+        public static Readout BuildInfo() => new Readout
+        (
+            "Build Info",
+            delegate(Readout readout)
+            {
+                string info = "Build Info:";
+                Vector2 centerOfMass = Vector2.zero;
+                if (BuildManager.main != null)
+                {
+                    if (BuildManager.main.buildGrid.activeGrid.partsHolder.parts.Count != 0)
+                    {
+                        float mass = 0f;
+                        foreach (Part part in BuildManager.main.buildGrid.activeGrid.partsHolder.parts)
+                        {
+                            mass += part.mass.Value;
+                            centerOfMass += (part.Position + part.centerOfMass.Value * part.orientation) * part.mass.Value;
+                        }
+                        centerOfMass /= mass;
+                        info += "\n• CoM position: " + centerOfMass.ToString();
+
+                        // Vector2 position = Vector2.zero;
+                        // Vector2 direction = Vector2.zero;
+                        // float thrust = 0f;
+                        // List<EngineModule> engines = BuildManager.main.buildGrid.activeGrid.partsHolder.GetModules<EngineModule>().ToList();
+                        // List<BoosterModule> boosters = BuildManager.main.buildGrid.activeGrid.partsHolder.GetModules<BoosterModule>().ToList();
+
+                        // foreach (EngineModule engine in engines)
+                        // {
+                        //     float gimbal = 0;
+                        //     if (engine.hasGimbal && engine.Rb2d != null)
+                        //         gimbal = (engine.gimbal.animationElements.First(ae => ae.type == MoveData.Type.RotationZ).transform.localEulerAngles.z) * Mathf.Deg2Rad;
+
+                        //     // https://youtu.be/7j5yW5QDC2U?t=203
+                        //     Vector2 mx = new Vector2(Mathf.Cos(gimbal), Mathf.Sin(gimbal));
+                        //     Vector2 my = new Vector2(Mathf.Sin(gimbal), -Mathf.Cos(gimbal));
+                        //     Vector2 thrustPosition = -(engine.thrustPosition.Value.x * mx) - (engine.thrustPosition.Value.y * my);
+                        //     Vector2 thrustNormal = -(engine.thrustNormal.Value.x * mx) - (engine.thrustNormal.Value.y * my);
+
+                        //     position += (Vector2)engine.transform.TransformPoint(thrustPosition) * engine.thrust.Value;
+                        //     direction += (Vector2)engine.transform.TransformPoint(thrustPosition - thrustNormal) * engine.thrust.Value;
+                        //     thrust += engine.thrust.Value;
+                        // }
+
+                        // foreach (BoosterModule booster in boosters)
+                        // {
+                        //     Vector2 thrustPosition = booster.thrustPosition.Value;
+                        //     Vector2 thrustNormal = booster.thrustVector.Value;
+                        //     position += (Vector2)booster.transform.TransformPoint(thrustPosition) * thrustNormal.magnitude;
+                        //     direction += (Vector2)booster.transform.TransformPoint(thrustPosition - thrustNormal) * thrustNormal.magnitude;
+                        //     thrust += thrustNormal.magnitude;
+                        // }
+
+                        // position /= thrust;
+                        // direction /= thrust;
+
+                        // info += "\n• CoT to CoM angle: " + SignedNormaliseAngle(Mathf.Rad2Deg * Vector2.SignedAngle(centerOfMass - position, position - direction));
+
+                        return (true, info);
+                    }
+                }
+                return (false, info);
+
+                // float SignedNormaliseAngle(float a)
+                // {
+                //     while (a < -180) { a += 360; }
+                //     while (a >= 180) { a -= 360; }
+                //     return a;
+                // }
+            },
+            new Dictionary<string, object>()
+        );
         public static Readout PlanetInfo() => new Readout
         (
             "Planet Info",

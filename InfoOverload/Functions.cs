@@ -496,7 +496,7 @@ namespace InfoOverload
                         foreach (WheelModule wheel in wheels)
                         {
                             CircleCollider2D col = wheel.GetComponent<CircleCollider2D>();
-                            float radius = col.radius;
+                            float radius = col.radius * Mathf.Max(Mathf.Abs(col.transform.lossyScale.x), Mathf.Abs(col.transform.lossyScale.y));
                             Vector2 center = col.transform.TransformPoint(col.offset);
                             int resolution = 20;
 
