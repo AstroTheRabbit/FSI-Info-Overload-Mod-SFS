@@ -56,6 +56,7 @@ namespace InfoOverload
     [Serializable]
     public class ExtraSettings
     {
+        public bool minimiseWindowsByDefault = false;
         public bool showFunctions = true;
         public bool showReadouts = true;
         public int readoutsWindowHeight = 700;

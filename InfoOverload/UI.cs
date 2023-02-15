@@ -131,6 +131,12 @@ namespace InfoOverload
             KeepWindowInView(windowFunctions);
             KeepWindowInView(windowReadouts);
             KeepWindowInView(windowSettings);
+
+            if (extraSettings.minimiseWindowsByDefault)
+            {
+                windowFunctions.Minimized = true;
+                windowReadouts.Minimized = true;
+            }
         }
 
         static void KeepWindowInView(Window window)
@@ -142,10 +148,7 @@ namespace InfoOverload
                 rect.position = Vector2.Max((Vector2)rect.position + center, Vector2.zero) - center;
                 rect.position = Vector2.Min((Vector2)rect.position + center, new Vector2(Screen.width, Screen.height)) - center;
             }
-            catch (System.Exception e)
-            {
-                Debug.LogError(new System.Exception($"Info Overload - Error when moving window!", e));
-            }
+            catch {}
         }
 
         static void SetupFunctionsUI(Dictionary<string, Function> _functions)
