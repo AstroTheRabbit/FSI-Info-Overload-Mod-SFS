@@ -28,7 +28,7 @@ namespace InfoOverload
         public override string DisplayName => "FSI's Info Overload";
         public override string Author => "pixelgaming579";
         public override string MinimumGameVersionNecessary => "1.5.9.8";
-        public override string ModVersion => "1.3";
+        public override string ModVersion => "1.4";
         public override string Description => "Visualises colliders, ranges and other invisible/technical stuff. Made for Fusion Space Industries.";
         public override string IconLink => "https://i.imgur.com/D6heH5y.png";
         public override Dictionary<string, string> Dependencies { get; } = new Dictionary<string, string> { { "UITools", "1.1.1" } };
@@ -46,16 +46,7 @@ namespace InfoOverload
             buildReadoutsFile = new FolderPath(ModFolder).ExtendToFile("build-readouts.txt");
             extraSettingsFile = new FolderPath(ModFolder).ExtendToFile("extra-settings.txt");
 
-            if (JsonWrapper.TryLoadJson(worldFunctionsFile, out Dictionary<string, Function> loadedWorldFunctions))
-                loadedWorldFunctions.ForEach(func => worldFunctions[func.Key].LoadSavedSettings(func.Value));
-            if (JsonWrapper.TryLoadJson(buildFunctionsFile, out Dictionary<string, Function> loadedBuildFunctions))
-                loadedBuildFunctions.ForEach(func => buildFunctions[func.Key].LoadSavedSettings(func.Value));
-            if (JsonWrapper.TryLoadJson(worldReadoutsFile, out Dictionary<string, Readout> loadedWorldReadouts))
-                loadedWorldReadouts.ForEach(func => worldReadouts[func.Key].LoadSavedSettings(func.Value));
-            if (JsonWrapper.TryLoadJson(buildReadoutsFile, out Dictionary<string, Readout> loadedBuildReadouts))
-                loadedBuildReadouts.ForEach(func => buildReadouts[func.Key].LoadSavedSettings(func.Value));
-            if (JsonWrapper.TryLoadJson(extraSettingsFile, out ExtraSettings extraSettings))
-                UI.extraSettings = extraSettings;
+            LoadSavedSettings();
 
             // Should probably move this to a seperate mod.
             // ModLoader.IO.Console.commands.Add
@@ -126,6 +117,21 @@ namespace InfoOverload
         {
             new Harmony(modNameID).PatchAll();
         }
+
+        public static void LoadSavedSettings()
+        {
+            if (JsonWrapper.TryLoadJson(worldFunctionsFile, out Dictionary<string, Function> loadedWorldFunctions))
+                loadedWorldFunctions.ForEach(func => worldFunctions[func.Key].LoadSavedSettings(func.Value));
+            if (JsonWrapper.TryLoadJson(buildFunctionsFile, out Dictionary<string, Function> loadedBuildFunctions))
+                loadedBuildFunctions.ForEach(func => buildFunctions[func.Key].LoadSavedSettings(func.Value));
+            if (JsonWrapper.TryLoadJson(worldReadoutsFile, out Dictionary<string, Readout> loadedWorldReadouts))
+                loadedWorldReadouts.ForEach(func => worldReadouts[func.Key].LoadSavedSettings(func.Value));
+            if (JsonWrapper.TryLoadJson(buildReadoutsFile, out Dictionary<string, Readout> loadedBuildReadouts))
+                loadedBuildReadouts.ForEach(func => buildReadouts[func.Key].LoadSavedSettings(func.Value));
+            if (JsonWrapper.TryLoadJson(extraSettingsFile, out ExtraSettings extraSettings))
+                UI.extraSettings = extraSettings;
+        }
+
         public static Dictionary<string, Function> worldFunctions = new Dictionary<string, Function>()
         {
             {"dockingPorts",            Functions.DockingPorts()},

@@ -290,6 +290,8 @@ namespace InfoOverload
             JsonWrapper.SaveAsJson(Main.worldReadoutsFile, Main.worldReadouts, true);
             JsonWrapper.SaveAsJson(Main.buildReadoutsFile, Main.buildReadouts, true);
             JsonWrapper.SaveAsJson(Main.extraSettingsFile, extraSettings, true);
+
+            Main.LoadSavedSettings();
         }
     }
 }
