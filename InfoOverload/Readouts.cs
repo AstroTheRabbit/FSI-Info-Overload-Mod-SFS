@@ -59,7 +59,7 @@ namespace InfoOverload
                     info += "\n• Name: " + (rocket.rocketName != "" ? rocket.rocketName : Loc.main.Default_Rocket_Name);
                     info += "\n• Local thrust/weight: " + (thrust / (rocket.location.Value.planet.GetGravity(location.Radius) * rocket.mass.GetMass() / 9.8)).ToString(2, true);
                     info += "\n• Global rotation: " + NormaliseAngle(rocket.rb2d.rotation).ToString(4, true)+"°";
-                    info += "\n• Anglular velocity: " + rocket.rb2d.angularVelocity.ToString(4, true)+"°/s";
+                    info += "\n• Angular velocity: " + rocket.rb2d.angularVelocity.ToString(4, true)+"°/s";
                     info += "\n• Other height" + ((!(location.TerrainHeight < 2000.0) && !(location.Height < 500.0)) ? (" (Terrain): " + location.TerrainHeight.ToDistanceString(true)) : (": " + location.Height.ToDistanceString(true)));
                     return (true, info);
                 }
