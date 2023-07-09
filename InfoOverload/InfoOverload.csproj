@@ -7,40 +7,40 @@
 
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>Dependencies/0Harmony.dll</HintPath>
+      <HintPath>F:\Programs\Steam\steamapps\common\Spaceflight Simulator\Spaceflight Simulator Game\Spaceflight Simulator_Data\Managed\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>Dependencies/Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>Dependencies/UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>Dependencies/UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>Dependencies/UnityEngine.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>Dependencies/UnityEngine.TextRenderingModule.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <HintPath>Dependencies/UnityEngine.Unity.TextMeshPro.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.Physics2DModule">
-      <HintPath>Dependencies/UnityEngine.Physics2DModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>Dependencies/UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>F:\Programs\Steam\steamapps\common\Spaceflight Simulator\Spaceflight Simulator Game\Spaceflight Simulator_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>Dependencies/Newtonsoft.Json.dll</HintPath>
+      <HintPath>F:\Programs\Steam\steamapps\common\Spaceflight Simulator\Spaceflight Simulator Game\Spaceflight Simulator_Data\Managed\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="UITools">
-      <HintPath>Dependencies/UITools.dll</HintPath>
+      <HintPath>F:\Programs\Steam\steamapps\common\Spaceflight Simulator\Spaceflight Simulator Game\Mods\UITools\UITools.dll</HintPath>
     </Reference>
-    <Reference Include="System"/>
-    <Reference Include="System.Core"/>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>F:\Programs\Steam\steamapps\common\Spaceflight Simulator\Spaceflight Simulator Game\Spaceflight Simulator_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>F:\Programs\Steam\steamapps\common\Spaceflight Simulator\Spaceflight Simulator Game\Spaceflight Simulator_Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>F:\Programs\Steam\steamapps\common\Spaceflight Simulator\Spaceflight Simulator Game\Spaceflight Simulator_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>F:\Programs\Steam\steamapps\common\Spaceflight Simulator\Spaceflight Simulator Game\Spaceflight Simulator_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.Physics2DModule">
+      <HintPath>F:\Programs\Steam\steamapps\common\Spaceflight Simulator\Spaceflight Simulator Game\Spaceflight Simulator_Data\Managed\UnityEngine.Physics2DModule.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>F:\Programs\Steam\steamapps\common\Spaceflight Simulator\Spaceflight Simulator Game\Spaceflight Simulator_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>F:\Programs\Steam\steamapps\common\Spaceflight Simulator\Spaceflight Simulator Game\Spaceflight Simulator_Data\Managed\UnityEngine.UI.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

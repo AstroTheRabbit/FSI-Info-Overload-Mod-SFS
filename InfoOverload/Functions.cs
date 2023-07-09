@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Globalization;
 using Newtonsoft.Json;
 using SFS;
 using SFS.UI.ModGUI;
@@ -79,6 +80,50 @@ namespace InfoOverload
     }
     public class Functions
     {
+        /// <summary>
+        ///     Launch Pad Hitbox made by N2O4
+        /// </summary>
+        public static Function LaunchPadHitbox() => new Function
+        (
+            "Launch Pad Hitbox",
+            delegate(Function function)
+            {
+                function.ButtonActive = !function.ButtonActive;
+                new Visual
+                (
+                    "LPHitbox",
+                    delegate 
+                    {
+                        var launchPadPos = Base.planetLoader.spaceCenter.LaunchPadLocation.position;
+                        var fp32_launchPadPos = WorldView.ToLocalPosition(launchPadPos);
+
+                        List<Vector3> points = new List<Vector3>()
+                        {
+                            new Vector3(fp32_launchPadPos.x - 30f, fp32_launchPadPos.y - 200f), // Lower-left corner
+                            new Vector3(fp32_launchPadPos.x + 30f, fp32_launchPadPos.y - 200f), // Lower-right corner
+                            new Vector3(fp32_launchPadPos.x + 30f, fp32_launchPadPos.y + 200f), // Upper-right corner
+                            new Vector3(fp32_launchPadPos.x - 30f, fp32_launchPadPos.y + 200f) // Upper-left corner
+                        };
+
+                        Color c = function.GetSetting<Color>("Launch Pad Hitbox Color");
+
+                        GLDrawer.DrawLine(points[0], points[1], c, 0.0025f * WorldView.main.viewDistance);
+                        GLDrawer.DrawLine(points[1], points[2], c, 0.0025f * WorldView.main.viewDistance);
+                        GLDrawer.DrawLine(points[2], points[3], c, 0.0025f * WorldView.main.viewDistance);
+                        GLDrawer.DrawLine(points[3], points[0], c, 0.0025f * WorldView.main.viewDistance);
+
+                    },
+                    delegate 
+                    {
+                        return !function.ButtonActive || !function.enabledByPlayer; 
+                    }
+                );
+            },
+            new Dictionary<string, object>()
+            {
+                { "Launch Pad Hitbox Color", new Color(1, 1, 0) }
+            }
+        );
         public static Function DockingPorts() => new Function
         (
             "Docking Ports",
