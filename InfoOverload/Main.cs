@@ -145,6 +145,7 @@ namespace InfoOverload
             {"disableOutlines",         Functions.ChangeOutlines()},
             {"InteriorView",            Functions.ToggleInteriorView()},
             {"FreeCam",                 Functions.FreeCam()},
+            {"LPHitbox",                Functions.LaunchPadHitbox()} // By N2O4
         };
         public static Dictionary<string, Function> buildFunctions = new Dictionary<string, Function>()
         {
