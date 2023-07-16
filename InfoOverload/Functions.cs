@@ -81,11 +81,11 @@ namespace InfoOverload
     public class Functions
     {
         /// <summary>
-        ///     Launch Pad Hitbox made by N2O4
+        ///     Despawn hitbox of the launchpad. Made by N2O4.
         /// </summary>
-        public static Function LaunchPadHitbox() => new Function
+        public static Function DespawnHitbox() => new Function
         (
-            "Launch Pad Hitbox",
+            "Despawn Hitbox",
             delegate(Function function)
             {
                 function.ButtonActive = !function.ButtonActive;
@@ -105,7 +105,7 @@ namespace InfoOverload
                             new Vector3(fp32_launchPadPos.x - 30f, fp32_launchPadPos.y + 200f) // Upper-left corner
                         };
 
-                        Color c = function.GetSetting<Color>("Launch Pad Hitbox Color");
+                        Color c = function.GetSetting<Color>("Despawn Hitbox Color");
 
                         GLDrawer.DrawLine(points[0], points[1], c, 0.0025f * WorldView.main.viewDistance);
                         GLDrawer.DrawLine(points[1], points[2], c, 0.0025f * WorldView.main.viewDistance);
@@ -121,7 +121,7 @@ namespace InfoOverload
             },
             new Dictionary<string, object>()
             {
-                { "Launch Pad Hitbox Color", new Color(1, 1, 0) }
+                { "Despawn Hitbox Color", new Color(1, 1, 0) }
             }
         );
         public static Function DockingPorts() => new Function
