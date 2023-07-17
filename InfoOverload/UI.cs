@@ -194,9 +194,12 @@ namespace InfoOverload
             windowSettings.RegisterPermanentSaving(Main.modNameID + ".settings");
             windowSettings.RegisterOnDropListener(() => { KeepWindowInView(windowSettings); });
 
+            var saveButton = Builder.CreateButton(windowSettings.rectTransform, 90, 40, (int)(windowSettings.Size.x / 2f - 50f), -25, SaveSettings, "Save");
+            windowSettings.OnMinimizedChangedEvent += () => { saveButton.Active = !windowSettings.Minimized; };
+
             windowSettings.EnableScrolling(Type.Vertical);
-            Builder.CreateButton(windowSettings.rectTransform, 90, 40, (int)(windowSettings.Size.x / 2f - 50f), -25, SaveSettings, "Save");
             var layoutGroupTop = windowSettings.CreateLayoutGroup(Type.Vertical, spacing: 5, padding: new RectOffset(5,5,5,5));
+            
 
             Container functionsTitle = Builder.CreateContainer(windowSettings);
             functionsTitle.CreateLayoutGroup(Type.Horizontal);
