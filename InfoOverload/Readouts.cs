@@ -30,7 +30,7 @@ namespace InfoOverload
             this.name = name;
             this.updater = func;
             this.settings = settings;
-            
+
         }
         public void CreateVariable<T>(string varName, T defaultValue)
         {
@@ -46,6 +46,25 @@ namespace InfoOverload
     }
     public class Readouts
     {
+        private static float GetTorque(Rocket rocket)
+        {
+            float num = 0f;
+            TorqueModule[] modules = rocket.partHolder.GetModules<TorqueModule>();
+            foreach (TorqueModule torqueModule in modules)
+            {
+                if (torqueModule.enabled.Local || torqueModule.enabled.Value)
+                {
+                    num += torqueModule.torque.Value;
+                }
+            }
+            return num;
+        }
+
+        private static float SmoothedValue(float oldValue, float newValue, float smoothFactor=0.1f)
+        {
+            return oldValue*(1-smoothFactor)+newValue*smoothFactor;
+        }
+
         public static Readout RocketInfo() => new Readout
         (
             "Rocket Info",
@@ -55,11 +74,27 @@ namespace InfoOverload
                 if (PlayerController.main.player.Value is Rocket rocket)
                 {
                     Location location = rocket.location.Value;
+                    float mass = rocket.mass.GetMass();
+                    readout.CreateVariable("lastAngularVelocity", 0f);
+                    readout.CreateVariable("angularAcceleration", 0f);
+                    float angularAccelleration = SmoothedValue( (float)readout.vars["angularAcceleration"],(rocket.rb2d.angularVelocity- (float)readout.vars["lastAngularVelocity"]));
+                    readout.vars["angularAcceleration"] = angularAccelleration;
+                    readout.vars["lastAngularVelocity"] = rocket.rb2d.angularVelocity;
+
                     float thrust = rocket.partHolder.GetModules<EngineModule>().Sum((EngineModule a) => a.thrust.Value * a.throttle_Out.Value) + rocket.partHolder.GetModules<BoosterModule>().Sum((BoosterModule b) => b.thrustVector.Value.magnitude * b.throttle_Out.Value);
+                    float torque=GetTorque(rocket);
+
                     info += "\n• Name: " + (rocket.rocketName != "" ? rocket.rocketName : Loc.main.Default_Rocket_Name);
                     info += "\n• Local thrust/weight: " + (thrust / (rocket.location.Value.planet.GetGravity(location.Radius) * rocket.mass.GetMass() / 9.8)).ToString(2, true);
                     info += "\n• Global rotation: " + NormaliseAngle(rocket.rb2d.rotation).ToString(4, true)+"°";
                     info += "\n• Angular velocity: " + rocket.rb2d.angularVelocity.ToString(4, true)+"°/s";
+                    info += "\n• Angular Acceleration: " +angularAccelleration.ToString(4, true)+"°/s^2";
+                    info += "\n• Torque: " +torque.ToString(4, true)+"°t/s^2";
+
+                    if (rocket.rb2d.mass>0.1f)
+                        info += "\n• Torque/mass: " + (torque/mass).ToString(4, true)+"°/s^2";
+
+                    //~ info += "\n• Est stopping angle:"+ rocket.rb2d.angularVelocity* rocket.rb2d.angularVelocity*mass* Time.fixedDeltaTime/(torque*2);
                     info += "\n• Other height" + ((!(location.TerrainHeight < 2000.0) && !(location.Height < 500.0)) ? (" (Terrain): " + location.TerrainHeight.ToDistanceString(true)) : (": " + location.Height.ToDistanceString(true)));
                     return (true, info);
                 }
@@ -281,7 +316,7 @@ namespace InfoOverload
                 {
                     info += "\n• " + part.Key + ": " + part.Value;
                 }
-                
+
                 return (partCount.Count > 0, info);
             },
             new Dictionary<string, object>()
