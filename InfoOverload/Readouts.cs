@@ -83,64 +83,6 @@ namespace InfoOverload
             "Build Info",
             delegate(Readout readout)
             {
-                List<PartCollider> CreateBuildColliders(params Part[] parts)
-                {
-                    List<PartCollider> buildColliders = new List<PartCollider>();
-                    for (int i = 0; i < parts.Length; i++)
-                    {
-                        PolygonData[] modules = parts[i].GetModules<PolygonData>();
-                        foreach (PolygonData polygonData in modules)
-                        {
-                            if (polygonData.BuildCollider /* _IncludeInactive */)
-                            {
-                                PartCollider partCollider = new PartCollider
-                                {
-                                    module = polygonData,
-                                    colliders = null
-                                };
-                                partCollider.UpdateColliders();
-                                buildColliders.Add(partCollider);
-                            }
-                        }
-                    }
-                    return buildColliders;
-                }
-                
-                float GetDimension(bool height, Part[] parts = null)
-                {
-                    float lowest = float.MaxValue;
-                    float highest = -float.MaxValue;
-
-                    foreach (var part in parts ?? BuildManager.main.buildGrid.activeGrid.partsHolder.parts.ToArray())
-                    {
-                        foreach (var partPoly in CreateBuildColliders(part)
-                                     .SelectMany((PartCollider col) => col.colliders))
-                        {
-                            foreach (var vertice in partPoly.points)
-                            {
-                                var pos = height ? vertice.y : vertice.x;
-                                
-                                if (pos < lowest) lowest = pos;
-                                if (pos > highest) highest = pos;
-                            }
-                        }
-                        /*foreach (var data in part.GetModules<PolygonData>())
-                        {
-                            var polygon = data.polygon;
-
-                            foreach (var vertice in polygon.vertices)
-                            {
-                                var pos = height ? part.transform.TransformPoint(new Vector3(0, vertice.y, 0)).y : part.transform.TransformPoint(new Vector3(0, vertice.x, 0)).x;
-                                
-                                if (pos < lowest) lowest = pos;
-                                if (pos > highest) highest = pos;
-                            }
-                        }*/
-                    }
-                    
-                    return Mathf.Abs(highest - lowest);
-                }
-                
                 string info = "Build Info:";
                 Vector2 centerOfMass = Vector2.zero;
                 if (BuildManager.main)
@@ -155,8 +97,8 @@ namespace InfoOverload
                         }
                         centerOfMass /= mass;
                         info +=  "\n• CoM position: " + centerOfMass;
-                        info += $"\n• Width: {GetDimension(false).ToString(3, false)}m";
-                        info += $"\n• Height: {GetDimension(true).ToString(3, false)}m";
+                        info += $"\n• Width: {ReadoutUtility.GetDimension(false).ToString(3, false)}m";
+                        info += $"\n• Height: {ReadoutUtility.GetDimension(true).ToString(3, false)}m";
                         
                         // Vector2 position = Vector2.zero;
                         // Vector2 direction = Vector2.zero;
@@ -253,9 +195,11 @@ namespace InfoOverload
                 foreach (var part in selected)
                 {
                     var em = part.GetComponentInChildren<EngineModule>();
-                    if (!em) continue;
-
-                    thrust += em.thrust.Value * part.orientation.orientation.Value.y;
+                    var bm = part.GetComponentInChildren<BoosterModule>();
+                    if (em)
+                        thrust += em.thrust.Value * part.orientation.orientation.Value.y;
+                    if (bm)
+                        thrust += bm.thrustVector.Value.magnitude * part.orientation.orientation.Value.y;
                 }
                 
                 // DISPLAY
@@ -263,10 +207,13 @@ namespace InfoOverload
                 var info = new StringBuilder();
                 
                 info.Append("Selected Parts Info:\n");
-                info.Append($"• Mass: {mass.ToString(3, false)}t\n");
+                info.Append($"• Width: {ReadoutUtility.GetDimension(false, selected).ToString(3, false)}m\n");
+                info.Append($"• Height: {ReadoutUtility.GetDimension(true, selected).ToString(3, false)}m\n");
+                info.Append($"• Part count: {selected.Length}\n");
+                info.Append($"• Mass: {mass.ToString(3, false)}t");
                 if (thrust > 0)
                 {
-                    info.Append($"• Thrust: {thrust.ToString(3, false)}t\n");
+                    info.Append($"\n• Thrust: {thrust.ToString(3, false)}t\n");
                     info.Append($"• TWR: {(thrust / mass).ToString(3, true)}");
                 }
 
@@ -393,5 +340,66 @@ namespace InfoOverload
             },
             new Dictionary<string, object>()
         );
+    }
+
+    public static class ReadoutUtility
+    {
+        public static List<PartCollider> CreateBuildColliders(params Part[] parts)
+        {
+            List<PartCollider> buildColliders = new List<PartCollider>();
+            for (int i = 0; i < parts.Length; i++)
+            {
+                PolygonData[] modules = parts[i].GetModules<PolygonData>();
+                foreach (PolygonData polygonData in modules)
+                {
+                    if (polygonData.BuildCollider /* _IncludeInactive */)
+                    {
+                        PartCollider partCollider = new PartCollider
+                        {
+                            module = polygonData,
+                            colliders = null
+                        };
+                        partCollider.UpdateColliders();
+                        buildColliders.Add(partCollider);
+                    }
+                }
+            }
+            return buildColliders;
+        }
+        
+        public static float GetDimension(bool height, Part[] parts = null)
+        {
+            float lowest = float.MaxValue;
+            float highest = -float.MaxValue;
+
+            foreach (var part in parts ?? BuildManager.main.buildGrid.activeGrid.partsHolder.parts.ToArray())
+            {
+                foreach (var partPoly in CreateBuildColliders(part)
+                             .SelectMany((PartCollider col) => col.colliders))
+                {
+                    foreach (var vertice in partPoly.points)
+                    {
+                        var pos = height ? vertice.y : vertice.x;
+                        
+                        if (pos < lowest) lowest = pos;
+                        if (pos > highest) highest = pos;
+                    }
+                }
+                /*foreach (var data in part.GetModules<PolygonData>())
+                {
+                    var polygon = data.polygon;
+
+                    foreach (var vertice in polygon.vertices)
+                    {
+                        var pos = height ? part.transform.TransformPoint(new Vector3(0, vertice.y, 0)).y : part.transform.TransformPoint(new Vector3(0, vertice.x, 0)).x;
+                        
+                        if (pos < lowest) lowest = pos;
+                        if (pos > highest) highest = pos;
+                    }
+                }*/
+            }
+            
+            return Mathf.Abs(highest - lowest);
+        }      
     }
 }

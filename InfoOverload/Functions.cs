@@ -232,7 +232,7 @@ namespace InfoOverload
                                     }
                                 }
                             }
-                            GLDrawer.DrawCircle(centerOfMass, 0.25f, 50, function.GetSetting<Color>("CoM Color"));
+                            GLDrawer.DrawCircle(centerOfMass, function.GetSetting<float>("Dot radius"), 50, function.GetSetting<Color>("CoM Color"));
 
                             if (SceneManager.GetActiveScene().name == "Build_PC")
                             {
@@ -244,7 +244,7 @@ namespace InfoOverload
                                     selectedCenterOfMass += (part.Position + part.centerOfMass.Value * part.orientation) * part.mass.Value;
                                 }
                                 selectedCenterOfMass /= selectedMass;
-                                GLDrawer.DrawCircle(selectedCenterOfMass, 0.25f, 50, function.GetSetting<Color>("Selected CoM Color"));
+                                GLDrawer.DrawCircle(selectedCenterOfMass, function.GetSetting<float>("Dot radius"), 50, function.GetSetting<Color>("Selected CoM Color"));
                             }
                         },
                     delegate
@@ -256,6 +256,7 @@ namespace InfoOverload
             new Dictionary<string, object>()
             {
                 {"Show Force Of Gravity", false},
+                {"Dot radius", 0.25f},
                 {"Force Of Gravity Scale", 1f},
                 {"CoM Color", new Color(1f, 1f, 0f)},
                 {"Selected CoM Color", Color.green},
