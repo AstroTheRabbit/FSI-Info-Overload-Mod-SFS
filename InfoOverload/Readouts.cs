@@ -5,6 +5,7 @@ using SFS.Builds;
 using SFS.Parts;
 using SFS.World;
 using static SFS.Base;
+using static SFS.Builds.BuildGrid;
 using SFS.Parts.Modules;
 using SFS.Translations;
 using System.Linq;
@@ -82,9 +83,67 @@ namespace InfoOverload
             "Build Info",
             delegate(Readout readout)
             {
+                List<PartCollider> CreateBuildColliders(params Part[] parts)
+                {
+                    List<PartCollider> buildColliders = new List<PartCollider>();
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        PolygonData[] modules = parts[i].GetModules<PolygonData>();
+                        foreach (PolygonData polygonData in modules)
+                        {
+                            if (polygonData.BuildCollider /* _IncludeInactive */)
+                            {
+                                PartCollider partCollider = new PartCollider
+                                {
+                                    module = polygonData,
+                                    colliders = null
+                                };
+                                partCollider.UpdateColliders();
+                                buildColliders.Add(partCollider);
+                            }
+                        }
+                    }
+                    return buildColliders;
+                }
+                
+                float GetDimension(bool height, Part[] parts = null)
+                {
+                    float lowest = float.MaxValue;
+                    float highest = -float.MaxValue;
+
+                    foreach (var part in parts ?? BuildManager.main.buildGrid.activeGrid.partsHolder.parts.ToArray())
+                    {
+                        foreach (var partPoly in CreateBuildColliders(part)
+                                     .SelectMany((PartCollider col) => col.colliders))
+                        {
+                            foreach (var vertice in partPoly.points)
+                            {
+                                var pos = height ? vertice.y : vertice.x;
+                                
+                                if (pos < lowest) lowest = pos;
+                                if (pos > highest) highest = pos;
+                            }
+                        }
+                        /*foreach (var data in part.GetModules<PolygonData>())
+                        {
+                            var polygon = data.polygon;
+
+                            foreach (var vertice in polygon.vertices)
+                            {
+                                var pos = height ? part.transform.TransformPoint(new Vector3(0, vertice.y, 0)).y : part.transform.TransformPoint(new Vector3(0, vertice.x, 0)).x;
+                                
+                                if (pos < lowest) lowest = pos;
+                                if (pos > highest) highest = pos;
+                            }
+                        }*/
+                    }
+                    
+                    return Mathf.Abs(highest - lowest);
+                }
+                
                 string info = "Build Info:";
                 Vector2 centerOfMass = Vector2.zero;
-                if (BuildManager.main != null)
+                if (BuildManager.main)
                 {
                     if (BuildManager.main.buildGrid.activeGrid.partsHolder.parts.Count != 0)
                     {
@@ -95,8 +154,10 @@ namespace InfoOverload
                             centerOfMass += (part.Position + part.centerOfMass.Value * part.orientation) * part.mass.Value;
                         }
                         centerOfMass /= mass;
-                        info += "\n• CoM position: " + centerOfMass.ToString();
-
+                        info +=  "\n• CoM position: " + centerOfMass;
+                        info += $"\n• Width: {GetDimension(false).ToString(3, false)}m";
+                        info += $"\n• Height: {GetDimension(true).ToString(3, false)}m";
+                        
                         // Vector2 position = Vector2.zero;
                         // Vector2 direction = Vector2.zero;
                         // float thrust = 0f;
