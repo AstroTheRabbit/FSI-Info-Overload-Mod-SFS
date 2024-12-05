@@ -9,6 +9,8 @@ using SFS.Parts.Modules;
 using SFS.Translations;
 using System.Linq;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
+using System.Text;
 
 namespace InfoOverload
 {
@@ -168,6 +170,50 @@ namespace InfoOverload
             },
             new Dictionary<string, object>()
         );
+
+        public static Readout SelectedPartsInfo() => new Readout(
+            "Selected Parts Info",
+            delegate(Readout readout)
+            {
+                // CHECKS
+                
+                if (!BuildManager.main)
+                    return (false, null);
+                var selected = BuildManager.main.buildGrid.GetSelectedParts();
+
+                if (selected == null || selected.Length == 0) return (false, null);
+                
+                // CALCULATIONS
+                
+                double mass = 0;
+                selected.ForEach(part => mass += part.mass.Value);
+
+                double thrust = 0;
+                foreach (var part in selected)
+                {
+                    var em = part.GetComponentInChildren<EngineModule>();
+                    if (!em) continue;
+
+                    thrust += em.thrust.Value * part.orientation.orientation.Value.y;
+                }
+                
+                // DISPLAY
+                
+                var info = new StringBuilder();
+                
+                info.Append("Selected Parts Info:\n");
+                info.Append($"• Mass: {mass.ToString(3, false)}t\n");
+                if (thrust > 0)
+                {
+                    info.Append($"• Thrust: {thrust.ToString(3, false)}t\n");
+                    info.Append($"• TWR: {(thrust / mass).ToString(3, true)}");
+                }
+
+                return (true, info.ToString());
+            },
+            new Dictionary<string, object>()
+        );
+        
         public static Readout AtmoInfo() => new Readout
         (
             "Atmo Info",
