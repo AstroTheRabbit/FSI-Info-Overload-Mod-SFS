@@ -188,7 +188,7 @@ namespace InfoOverload
                 {"Positive Color", Color.green},
                 {"Negative Color", Color.red},
                 {"Inactive Color", Color.magenta},
-                {"Range Circle Detail", 50},
+                {"Range Circle Detail", 50f},
                 {"Force Line Scale", 1f},
             }
         );
@@ -387,13 +387,17 @@ namespace InfoOverload
                                 Color unload = function.GetSetting<Color>("Unload Color");
                                 Color load = function.GetSetting<Color>("Load Color");
 
-                                Vector2 center = WorldView.ToLocalPosition(WorldView.main.ViewLocation.position);
-                                int resolution = 32;
+                                Location loc = WorldView.main.ViewLocation;
+                                
+                                Vector2 center = WorldView.ToLocalPosition(loc.position);
+                                int resolution = 64;
                                 float radius = (float)rocket.physics.loader.loadDistance * 1.2f; // Unload radius.
                                 GLDrawerHelper.DrawCircle(center, radius, resolution, unload, 0.0025f * WorldView.main.viewDistance);
+                                MapVisualHelper.DrawCircle(loc.position, loc.planet, radius, resolution, unload);
 
                                 radius = (float)rocket.physics.loader.loadDistance * 0.8f; // Load radius.
                                 GLDrawerHelper.DrawCircle(center, radius, resolution, load, 0.0025f * WorldView.main.viewDistance);
+                                MapVisualHelper.DrawCircle(loc.position, loc.planet, radius, resolution, unload);
                             }
                         },
                     delegate
@@ -406,6 +410,7 @@ namespace InfoOverload
             {
                 {"Load Color", Color.green},
                 {"Unload Color", Color.red},
+                {"Show in Map", true}
             }
         );
         public static Function ToggleInteriorView() => new Function
@@ -577,7 +582,7 @@ namespace InfoOverload
         );
         public static Function ChangeOutlines() => new Function
         (
-            "Change Outlines",
+            "Custom Outlines",
             delegate(Function function)
             {
                 Patches.changeOutlines = function.ButtonActive = !function.ButtonActive;

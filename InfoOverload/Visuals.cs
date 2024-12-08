@@ -25,10 +25,10 @@ namespace InfoOverload
     {
         public static void DrawCircle(Vector2 pos, float radius, int resolution, Color color, float thickness)
         {
-            for (float i = 0; i < resolution; i++)
+            for (int i = 0; i < resolution; i++)
             {
-                float angle = i/resolution * 2 * Mathf.PI;
-                float theta = (i+1)/resolution * 2 * Mathf.PI;
+                float angle = (float)i/resolution * 2 * Mathf.PI;
+                float theta = (float)(i+1)/resolution * 2 * Mathf.PI;
                 Vector2 pos1 = new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius) + pos;
                 Vector2 pos2 = new Vector2(Mathf.Cos(theta) * radius, Mathf.Sin(theta) * radius) + pos;
                 GLDrawer.DrawLine(pos1, pos2, color, thickness);

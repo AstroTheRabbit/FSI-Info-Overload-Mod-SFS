@@ -19,5 +19,23 @@ namespace InfoOverload
             
             Map.solidLine.DrawLine(conv, planet, color, color);
         }
+
+        public static void DrawCircle(Double2 center, Planet planet, double radius, int resolution, Color color)
+        {
+            var mapCenter = new Vector2((float) (center.x / 1000), (float) (center.y / 1000));
+            float r = (float)(radius / 1000);
+            
+            Vector3[] points = new Vector3[resolution+1];
+            
+            for (int i = 0; i < resolution; i++)
+            {
+                float angle = (float)i/resolution * 2 * Mathf.PI;
+                points[i] = new Vector2(Mathf.Cos(angle) * r, Mathf.Sin(angle) * r) + mapCenter;
+            }
+
+            points[resolution] = new Vector2(r, 0) + mapCenter;
+            
+            Map.solidLine.DrawLine(points, planet, color, color);
+        }
     }
 }
