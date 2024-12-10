@@ -161,7 +161,7 @@ namespace InfoOverload
         }
     }
 
-    public class InputHelpers
+    public static class InputHelpers
     {
         public static string FloatToString(float input, int decimals = 4) => input.ToString(decimals, false);
         public static string VerifyFloatInput(string input) => FloatToString(StringToFloat(input));

@@ -13,6 +13,7 @@ namespace InfoOverload
     {
         public Dictionary<Function, Dictionary<string, ISettingsUI>> settingsWindowFunctionValues = new Dictionary<Function, Dictionary<string, ISettingsUI>>();
         public Dictionary<Readout, Dictionary<string, ISettingsUI>> settingsWindowReadoutValues = new Dictionary<Readout, Dictionary<string, ISettingsUI>>();
+        
         private void Update()
         {
             UI.extraSettings.UpdateWindows();

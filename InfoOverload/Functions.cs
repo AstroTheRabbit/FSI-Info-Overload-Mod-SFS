@@ -376,7 +376,8 @@ namespace InfoOverload
             delegate(Function function)
             {
                 function.ButtonActive = !function.ButtonActive;
-
+                bool map = function.GetSetting<bool>("Show in Map");
+                
                     new Visual
                     (
                     "LoadDistance",
@@ -393,16 +394,33 @@ namespace InfoOverload
                                 int resolution = 64;
                                 float radius = (float)rocket.physics.loader.loadDistance * 1.2f; // Unload radius.
                                 GLDrawerHelper.DrawCircle(center, radius, resolution, unload, 0.0025f * WorldView.main.viewDistance);
-                                MapVisualHelper.DrawCircle(loc.position, loc.planet, radius, resolution, unload);
 
                                 radius = (float)rocket.physics.loader.loadDistance * 0.8f; // Load radius.
                                 GLDrawerHelper.DrawCircle(center, radius, resolution, load, 0.0025f * WorldView.main.viewDistance);
-                                MapVisualHelper.DrawCircle(loc.position, loc.planet, radius, resolution, unload);
                             }
                         },
                     delegate
                     {
                         return !function.ButtonActive || !function.enabledByPlayer;
+                    },
+                    mapUpdateFunc: () =>
+                    {
+                        map = function.GetSetting<bool>("Show in Map");
+                        if (!map) return;
+                        if (PlayerController.main.player.Value is Rocket rocket)
+                        {
+                            Color load = function.GetSetting<Color>("Load Color");
+                            Color unload = function.GetSetting<Color>("Unload Color");
+                            
+                            var loc = WorldView.main.ViewLocation;
+                            int resolution = 64;
+                            
+                            float radius = (float)rocket.physics.loader.loadDistance * 1.2f; // Unload radius.
+                            MapVisualHelper.DrawCircle(loc.position, loc.planet, radius, resolution, unload);
+                            
+                            radius = (float)rocket.physics.loader.loadDistance * 0.8f; // Load radius.
+                            MapVisualHelper.DrawCircle(loc.position, loc.planet, radius, resolution, load);
+                        }
                     }
                 );
             },
@@ -429,6 +447,7 @@ namespace InfoOverload
             delegate(Function function)
             {
                 function.ButtonActive = !function.ButtonActive;
+                
                 new Visual
                 (
                     "PartColliders",

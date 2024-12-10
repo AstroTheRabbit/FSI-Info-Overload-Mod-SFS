@@ -1,9 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
 using SFS.Builds;
 using SFS.World;
 using SFS.UI;
+using SFS.Variables;
+using SFS.World.Maps;
 
 namespace InfoOverload
 {
@@ -102,6 +107,16 @@ namespace InfoOverload
                     if (UI.holderSettings != null)
                         UI.holderSettings.SetActive(open);
                 };
+            }
+        }
+        
+        [HarmonyPatch(typeof(MapManager), "DrawTrajectories")]
+        class MapDrawPatch
+        {
+            [HarmonyPostfix]
+            static void Postfix()
+            {
+                Visualiser.MapUpdate();
             }
         }
     }

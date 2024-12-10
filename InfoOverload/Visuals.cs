@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using SFS;
+using SFS.World.Maps;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace InfoOverload
 {
@@ -9,14 +13,16 @@ namespace InfoOverload
         public string name;
         public Action Draw;
         public Action fixedUpdate;
+        public Action mapUpdate;
         public Func<bool> CheckDestroy;
 
-        public Visual(string name, Action drawFunc, Func<bool> checkDestroyFunc, Action fixedUpdateFunc = null)
+        public Visual(string name, Action drawFunc, Func<bool> checkDestroyFunc, Action fixedUpdateFunc = null, Action mapUpdateFunc = null)
         {
             this.name = name;
             this.Draw = drawFunc;
             this.CheckDestroy = checkDestroyFunc;
             this.fixedUpdate = fixedUpdateFunc;
+            this.mapUpdate = mapUpdateFunc;
             Visualiser.main.visuals.Add(this);
         }
     }
@@ -40,6 +46,9 @@ namespace InfoOverload
     {
         public static Visualiser main;
         public List<Visual> visuals = new List<Visual>();
+        
+        public static List<Visual> Visuals => main.visuals;
+        
         private void Awake()
         {
             main = this;
@@ -82,7 +91,7 @@ namespace InfoOverload
             visuals.RemoveAll(v => erroredVisuals.Contains(v));
         }
 
-        private void Update()
+        public void Update()
         {
             if (!(GLDrawer.main is null) && !GLDrawer.main.drawers.Contains(this))
                 GLDrawer.Register(this);
@@ -91,17 +100,37 @@ namespace InfoOverload
             do
             {
                 destroyedVisual = false;
-                foreach (Visual visual in visuals)
+                foreach (Visual visual in Visuals)
                 {
                     if (visual.CheckDestroy())
                     {
-                        visuals.Remove(visual);
+                        Visuals.Remove(visual);
                         destroyedVisual = true;
                         break;
                     }
                 }
                 
             } while (destroyedVisual);
+        }
+
+        public static void MapUpdate()
+        {
+
+            List<Visual> erroredVisuals = new List<Visual>();
+            foreach (Visual v in Visuals)
+            {
+                try
+                {
+                    if (v.mapUpdate != null)
+                        v.mapUpdate();
+                }
+                catch (SystemException e)
+                {
+                    Debug.LogError($"Visual \"{v.name}\" errored!\n{e}");
+                    erroredVisuals.Add(v);
+                }
+            }
+            Visuals.RemoveAll(v => erroredVisuals.Contains(v));
         }
     }
 }
