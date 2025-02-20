@@ -34,6 +34,7 @@ namespace InfoOverload
             {
                 static bool Prefix(Vector2 oldValue, Vector2 newValue, ref Vector2 __result, PlayerController __instance)
                 {
+                    if (!enableFreeCam) return true;
                     if (__instance.player.Value is Rocket rocket && newValue.magnitude >= rocket.physics.loader.loadDistance * 1.2f && lockFreeCam)
                     {
                         __result = (newValue.normalized * (float)rocket.physics.loader.loadDistance * 1.2f) - newValue.normalized;
@@ -42,7 +43,7 @@ namespace InfoOverload
                     {
                         __result = newValue;
                     }
-                    return !enableFreeCam;
+                    return false;
                 }
             }
             // [HarmonyPatch(typeof(WorldView), "PositionCamera")]
