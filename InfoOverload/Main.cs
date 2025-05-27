@@ -26,10 +26,10 @@ namespace InfoOverload
 
         public override string ModNameID => modNameID;
         public override string DisplayName => "FSI's Info Overload";
-        public override string Author => "pixelgaming579";
-        public override string MinimumGameVersionNecessary => "1.5.9.8";
-        public override string ModVersion => "1.6";
-        public override string Description => "Visualises colliders, ranges and other invisible/technical stuff. Made for Fusion Space Industries.";
+        public override string Author => "Fusion Space Industries";
+        public override string MinimumGameVersionNecessary => "1.5.10.2";
+        public override string ModVersion => "1.7";
+        public override string Description => "Visualises colliders, ranges and other invisible/technical stuff. Made for Fusion Space Industries.\nProgrammed by: Astro The Rabbit, VerdiX094";
         public override string IconLink => "https://i.imgur.com/D6heH5y.png";
         public override Dictionary<string, string> Dependencies { get; } = new Dictionary<string, string> { { "UITools", "1.1.1" } };
 
@@ -145,7 +145,7 @@ namespace InfoOverload
             {"disableOutlines",         Functions.ChangeOutlines()},
             {"InteriorView",            Functions.ToggleInteriorView()},
             {"FreeCam",                 Functions.FreeCam()},
-            {"LPDespawnHitbox",                Functions.DespawnHitbox()} // By N2O4
+            {"LPDespawnHitbox",         Functions.DespawnHitbox()} // By N2O4
         };
         public static Dictionary<string, Function> buildFunctions = new Dictionary<string, Function>()
         {
@@ -168,6 +168,7 @@ namespace InfoOverload
         };
         public static Dictionary<string, Readout> buildReadouts = new Dictionary<string, Readout>()
         {
+            {"SelectedInfo",    Readouts.SelectedPartsInfo()},
             {"BuildIno",        Readouts.BuildInfo()},
             {"MiscInfo",        Readouts.MiscInfo()},
             {"ActiveCheats",    Readouts.ActiveCheats()},

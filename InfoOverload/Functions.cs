@@ -136,7 +136,8 @@ namespace InfoOverload
                     delegate
                     {
                         List<DockingPortModule> ports = new List<DockingPortModule>();
-                        float resolution = function.GetSetting<float>("Range Circle Detail");
+                        // Round the resolution
+                        int resolution = (int) (function.GetSetting<float>("Range Circle Detail") + 0.5f);
                         float forceScale = function.GetSetting<float>("Force Line Scale");
                         if (SceneManager.GetActiveScene().name == "Build_PC")
                         {
@@ -159,16 +160,9 @@ namespace InfoOverload
                         {
                             Color indicatorColor = !port.isDockable.Value ? inactive : (port.forceMultiplier.Value < 0 ? negative : positive);
 
-                            GLDrawer.DrawCircle(port.transform.position, 0.05f, 20, indicatorColor);
+                            GLDrawer.DrawCircle(port.transform.position, 0.05f, (int) resolution, indicatorColor);
                             float radius = port.pullDistance * Mathf.Max(Mathf.Abs(port.trigger.transform.lossyScale.x), Mathf.Abs(port.trigger.transform.lossyScale.y));
-                            for (float i = 0; i < resolution; i++)
-                            {
-                                float angle = (i/resolution) * 2 * Mathf.PI;
-                                float theta = ((i+1)/resolution) * 2 * Mathf.PI;
-                                Vector2 pos1 = new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius) + (Vector2) port.transform.position;
-                                Vector2 pos2 = new Vector2(Mathf.Cos(theta) * radius, Mathf.Sin(theta) * radius) + (Vector2) port.transform.position;
-                                GLDrawer.DrawLine(pos1, pos2, indicatorColor, 0.03f);
-                            }
+                            GLDrawerHelper.DrawCircle(port.transform.position, radius, resolution, indicatorColor, 0.03f);
 
                             if (port.isDockable.Value)
                             {
@@ -232,7 +226,7 @@ namespace InfoOverload
                                     }
                                 }
                             }
-                            GLDrawer.DrawCircle(centerOfMass, 0.25f, 50, function.GetSetting<Color>("CoM Color"));
+                            GLDrawer.DrawCircle(centerOfMass, function.GetSetting<float>("Dot radius"), 50, function.GetSetting<Color>("CoM Color"));
 
                             if (SceneManager.GetActiveScene().name == "Build_PC")
                             {
@@ -244,7 +238,7 @@ namespace InfoOverload
                                     selectedCenterOfMass += (part.Position + part.centerOfMass.Value * part.orientation) * part.mass.Value;
                                 }
                                 selectedCenterOfMass /= selectedMass;
-                                GLDrawer.DrawCircle(selectedCenterOfMass, 0.25f, 50, function.GetSetting<Color>("Selected CoM Color"));
+                                GLDrawer.DrawCircle(selectedCenterOfMass, function.GetSetting<float>("Dot radius"), 50, function.GetSetting<Color>("Selected CoM Color"));
                             }
                         },
                     delegate
@@ -256,6 +250,7 @@ namespace InfoOverload
             new Dictionary<string, object>()
             {
                 {"Show Force Of Gravity", false},
+                {"Dot radius", 0.25f},
                 {"Force Of Gravity Scale", 1f},
                 {"CoM Color", new Color(1f, 1f, 0f)},
                 {"Selected CoM Color", Color.green},
@@ -381,7 +376,8 @@ namespace InfoOverload
             delegate(Function function)
             {
                 function.ButtonActive = !function.ButtonActive;
-
+                bool map = function.GetSetting<bool>("Show in Map");
+                
                     new Visual
                     (
                     "LoadDistance",
@@ -392,32 +388,39 @@ namespace InfoOverload
                                 Color unload = function.GetSetting<Color>("Unload Color");
                                 Color load = function.GetSetting<Color>("Load Color");
 
-                                Vector2 center = WorldView.ToLocalPosition(WorldView.main.ViewLocation.position);
-                                int resolution = 100;
+                                Location loc = WorldView.main.ViewLocation;
+                                
+                                Vector2 center = WorldView.ToLocalPosition(loc.position);
+                                int resolution = 64;
                                 float radius = (float)rocket.physics.loader.loadDistance * 1.2f; // Unload radius.
-                                for (float i = 0; i < resolution; i++)
-                                {
-                                    float angle = (i/resolution) * 2 * Mathf.PI;
-                                    float theta = ((i+1)/resolution) * 2 * Mathf.PI;
-                                    Vector2 pos1 = new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius) + center;
-                                    Vector2 pos2 = new Vector2(Mathf.Cos(theta) * radius, Mathf.Sin(theta) * radius) + center;
-                                    GLDrawer.DrawLine(pos1, pos2, unload, 0.0025f * WorldView.main.viewDistance);
-                                }
+                                GLDrawerHelper.DrawCircle(center, radius, resolution, unload, 0.0025f * WorldView.main.viewDistance);
 
                                 radius = (float)rocket.physics.loader.loadDistance * 0.8f; // Load radius.
-                                for (float i = 0; i < resolution; i++)
-                                {
-                                    float angle = (i/resolution) * 2 * Mathf.PI;
-                                    float theta = ((i+1)/resolution) * 2 * Mathf.PI;
-                                    Vector2 pos1 = new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius) + center;
-                                    Vector2 pos2 = new Vector2(Mathf.Cos(theta) * radius, Mathf.Sin(theta) * radius) + center;
-                                    GLDrawer.DrawLine(pos1, pos2, load, 0.0025f * WorldView.main.viewDistance);
-                                }
+                                GLDrawerHelper.DrawCircle(center, radius, resolution, load, 0.0025f * WorldView.main.viewDistance);
                             }
                         },
                     delegate
                     {
                         return !function.ButtonActive || !function.enabledByPlayer;
+                    },
+                    mapUpdateFunc: () =>
+                    {
+                        map = function.GetSetting<bool>("Show in Map");
+                        if (!map) return;
+                        if (PlayerController.main.player.Value is Rocket rocket)
+                        {
+                            Color load = function.GetSetting<Color>("Load Color");
+                            Color unload = function.GetSetting<Color>("Unload Color");
+                            
+                            var loc = WorldView.main.ViewLocation;
+                            int resolution = 64;
+                            
+                            float radius = (float)rocket.physics.loader.loadDistance * 1.2f; // Unload radius.
+                            MapVisualHelper.DrawCircle(loc.position, loc.planet, radius, resolution, unload);
+                            
+                            radius = (float)rocket.physics.loader.loadDistance * 0.8f; // Load radius.
+                            MapVisualHelper.DrawCircle(loc.position, loc.planet, radius, resolution, load);
+                        }
                     }
                 );
             },
@@ -425,6 +428,7 @@ namespace InfoOverload
             {
                 {"Load Color", Color.green},
                 {"Unload Color", Color.red},
+                {"Show in Map", true}
             }
         );
         public static Function ToggleInteriorView() => new Function
@@ -443,6 +447,7 @@ namespace InfoOverload
             delegate(Function function)
             {
                 function.ButtonActive = !function.ButtonActive;
+                
                 new Visual
                 (
                     "PartColliders",
@@ -544,15 +549,8 @@ namespace InfoOverload
                             float radius = col.radius * Mathf.Max(Mathf.Abs(col.transform.lossyScale.x), Mathf.Abs(col.transform.lossyScale.y));
                             Vector2 center = col.transform.TransformPoint(col.offset);
                             int resolution = 20;
-
-                            for (float i = 0; i < resolution; i++)
-                            {
-                                float angle = (i/resolution) * 2 * Mathf.PI;
-                                float theta = ((i+1)/resolution) * 2 * Mathf.PI;
-                                Vector2 pos1 = new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius) + center;
-                                Vector2 pos2 = new Vector2(Mathf.Cos(theta) * radius, Mathf.Sin(theta) * radius) + center;
-                                GLDrawer.DrawLine(pos1, pos2, color, 0.05f);
-                            }
+                            
+                            GLDrawerHelper.DrawCircle(center, radius, resolution, color, 0.05f);
                         }
                     },
                     delegate
@@ -582,12 +580,12 @@ namespace InfoOverload
                         foreach (Transform child in TerrainColliderManager.main.transform)
                         {
                             if (child.GetComponent<PolygonCollider2D>() is PolygonCollider2D col)
-                            for (int i = 0; i < col.points.Length; i++)
-                            {
-                                Vector2 p1 = child.TransformPoint(col.points[i] + col.offset);
-                                Vector2 p2 = child.TransformPoint(col.points[i+1 != col.points.Length ? i+1 : 0] + col.offset);
-                                GLDrawer.DrawLine(p1, p2, color, Mathf.Min(0.01f * WorldView.main.viewDistance, 5));
-                            }
+                                for (int i = 0; i < col.points.Length; i++)
+                                {
+                                    Vector2 p1 = child.TransformPoint(col.points[i] + col.offset);
+                                    Vector2 p2 = child.TransformPoint(col.points[i+1 != col.points.Length ? i+1 : 0] + col.offset);
+                                    GLDrawer.DrawLine(p1, p2, color, Mathf.Min(0.01f * WorldView.main.viewDistance, 5));
+                                }
                         }
                     },
                     delegate
@@ -603,7 +601,7 @@ namespace InfoOverload
         );
         public static Function ChangeOutlines() => new Function
         (
-            "Change Outlines",
+            "Custom Outlines",
             delegate(Function function)
             {
                 Patches.changeOutlines = function.ButtonActive = !function.ButtonActive;
@@ -697,7 +695,7 @@ namespace InfoOverload
                                         ParachuteModule[] modules = rocket.partHolder.GetModules<ParachuteModule>();
                                         foreach (ParachuteModule parachuteModule in modules)
                                         {
-                                            if (parachuteModule.targetState.Value == 1f || parachuteModule.targetState.Value == 2f)
+                                            if (parachuteModule.targetState.Value - 1f < 0.000001f || parachuteModule.targetState.Value - 2f < 0.000001f)
                                             {
                                                 float num = (float)WorldView.ToGlobalVelocity(rocket.rb2d.GetPointVelocity(parachuteModule.parachute.position)).sqrMagnitude * parachuteModule.drag.Evaluate(parachuteModule.state.Value);
                                                 centerOfDragWorld = (centerOfDragWorld * force + (Vector2)parachuteModule.parachute.position * num) / (force + num);

@@ -13,6 +13,7 @@ namespace InfoOverload
     {
         public Dictionary<Function, Dictionary<string, ISettingsUI>> settingsWindowFunctionValues = new Dictionary<Function, Dictionary<string, ISettingsUI>>();
         public Dictionary<Readout, Dictionary<string, ISettingsUI>> settingsWindowReadoutValues = new Dictionary<Readout, Dictionary<string, ISettingsUI>>();
+        
         private void Update()
         {
             UI.extraSettings.UpdateWindows();
@@ -171,7 +172,7 @@ namespace InfoOverload
             
             holderReadouts = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "InfoOverload UI - Info");
             windowReadouts = UITools.UIToolsBuilder.CreateClosableWindow(holderReadouts.transform, windowIDReadouts, 450, 700, -230, 0, true, true, 0.95f, "Info Overload");
-            windowReadouts.CreateLayoutGroup(SFS.UI.ModGUI.Type.Vertical, TextAnchor.UpperCenter).childScaleHeight = true;    
+            windowReadouts.CreateLayoutGroup(SFS.UI.ModGUI.Type.Vertical, TextAnchor.UpperCenter, padding: new RectOffset(8, 0, 0, 0)).childScaleHeight = true;    
 
             infoTextbox = Builder.CreateLabel(windowReadouts, 440, 0);
             infoTextbox.TextAlignment = TMPro.TextAlignmentOptions.MidlineLeft;
