@@ -1,9 +1,6 @@
-﻿using System.Linq;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
+﻿using System.Collections.Generic;
 using HarmonyLib;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using ModLoader;
 using ModLoader.Helpers;
 using SFS.IO;
@@ -28,16 +25,16 @@ namespace InfoOverload
         public override string DisplayName => "FSI's Info Overload";
         public override string Author => "Fusion Space Industries";
         public override string MinimumGameVersionNecessary => "1.5.10.2";
-        public override string ModVersion => "1.7";
+        public override string ModVersion => "1.8";
         public override string Description => "Visualises colliders, ranges and other invisible/technical stuff. Made for Fusion Space Industries.\nProgrammed by: Astro The Rabbit, VerdiX094";
         public override string IconLink => "https://i.imgur.com/D6heH5y.png";
         public override Dictionary<string, string> Dependencies { get; } = new Dictionary<string, string> { { "UITools", "1.1.1" } };
 
         public override void Load()
         {
-            
-            GameObject.DontDestroyOnLoad(new GameObject("Info Overload - Visuals").AddComponent<Visualiser>().gameObject);
-            GameObject.DontDestroyOnLoad((UI.uiUpdater = new GameObject("Info Overload - UI Updater").AddComponent<UIUpdater>()).gameObject);
+
+            Object.DontDestroyOnLoad(new GameObject("Info Overload - Visuals").AddComponent<Visualiser>().gameObject);
+            Object.DontDestroyOnLoad((UI.uiUpdater = new GameObject("Info Overload - UI Updater").AddComponent<UIUpdater>()).gameObject);
             SceneHelper.OnSceneLoaded += UI.ManageUI;
 
             worldFunctionsFile = new FolderPath(ModFolder).ExtendToFile("world-functions.txt");
@@ -47,71 +44,6 @@ namespace InfoOverload
             extraSettingsFile = new FolderPath(ModFolder).ExtendToFile("extra-settings.txt");
 
             LoadSavedSettings();
-
-            // Should probably move this to a seperate mod.
-            // ModLoader.IO.Console.commands.Add
-            // (
-            //     (string input) =>
-            //     {
-            //         if (!input.StartsWith("hierarchy"))
-            //             return false;
-
-            //         List<string> args = input.Split(' ').ToList();
-            //         args.RemoveAt(0);
-            //         bool showComponents = args.Contains("-c");
-            //         bool printEnabled = args.Contains("-e");
-            //         bool hideDisabled = args.Contains("-h");
-
-            //         List<string> exclude = new List<string>();
-            //         foreach (Match match in Regex.Matches(input, @"-x=""(?<name>.*)"""))
-            //         {
-            //             exclude.Add(match.Groups["name"].Value);
-            //         }
-                    
-            //         List<string> colors = new List<string>()
-            //         {
-            //             "red", "green", "orange", "blue", "yellow", "purple"
-            //         };
-            //         foreach (GameObject go in SceneManager.GetActiveScene().GetRootGameObjects())
-            //         {
-            //             LogChildren(go.transform, 0);
-            //         }
-            //         return true;
-
-            //         void LogChildren(Transform transform, int depth)
-            //         {
-            //             if (hideDisabled && !transform.gameObject.activeInHierarchy)
-            //                 return;
-
-            //             string tabs = new string('\t', depth);
-            //             List<string> tags = new List<string>();
-            //             if (printEnabled)
-            //                 tags.Add(transform.gameObject.activeInHierarchy ? "Enabled" : "Disabled");
-            //             if (exclude.Contains(transform.name))
-            //                 tags.Add("Children hidden");
-
-            //             string tagsText = tags.Count > 0 ? $" [{string.Join(", ", tags)}]" : "";
-            //             string output = $"{tabs}<color={colors[depth % colors.Count]}>{transform.name}</color>{tagsText}";
-            //             if (showComponents)
-            //             {
-            //                 foreach (Component c in transform.GetComponents<Component>())
-            //                 {
-            //                     output += $"\n{tabs}\t<size=80%>• {c.GetType().ToString()}</size>";
-            //                 }
-            //             }
-
-            //             ModLoader.IO.Console.main.WriteText(output);
-            //             if (exclude.Contains(transform.name))
-            //                 return;
-                        
-            //             foreach (Transform child in transform)
-            //             {
-            //                 LogChildren(child, depth + 1);
-            //             }
-            //         }
-            //     }
-            // );
-
         }
         public override void Early_Load()
         {

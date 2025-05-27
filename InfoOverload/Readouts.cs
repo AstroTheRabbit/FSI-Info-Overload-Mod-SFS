@@ -1,17 +1,16 @@
 using System;
-using Newtonsoft.Json;
-using UnityEngine;
-using SFS.Builds;
-using SFS.Parts;
-using SFS.World;
-using static SFS.Base;
-using static SFS.Builds.BuildGrid;
-using SFS.Parts.Modules;
-using SFS.Translations;
+using System.Text;
 using System.Linq;
 using System.Collections.Generic;
-using System.Net.NetworkInformation;
-using System.Text;
+using UnityEngine;
+using Newtonsoft.Json;
+using SFS.Parts;
+using SFS.World;
+using SFS.Builds;
+using SFS.Translations;
+using SFS.Parts.Modules;
+using static SFS.Base;
+using static SFS.Builds.BuildGrid;
 
 namespace InfoOverload
 {
@@ -96,58 +95,14 @@ namespace InfoOverload
                             centerOfMass += (part.Position + part.centerOfMass.Value * part.orientation) * part.mass.Value;
                         }
                         centerOfMass /= mass;
-                        info +=  "\n• CoM position: " + centerOfMass;
+                        info += $"\n• CoM position: {centerOfMass.x:0.00}, {centerOfMass.y:0.00}";
                         info += $"\n• Width: {ReadoutUtility.GetDimension(false).ToString(3, false)}m";
                         info += $"\n• Height: {ReadoutUtility.GetDimension(true).ToString(3, false)}m";
-                        
-                        // Vector2 position = Vector2.zero;
-                        // Vector2 direction = Vector2.zero;
-                        // float thrust = 0f;
-                        // List<EngineModule> engines = BuildManager.main.buildGrid.activeGrid.partsHolder.GetModules<EngineModule>().ToList();
-                        // List<BoosterModule> boosters = BuildManager.main.buildGrid.activeGrid.partsHolder.GetModules<BoosterModule>().ToList();
-
-                        // foreach (EngineModule engine in engines)
-                        // {
-                        //     float gimbal = 0;
-                        //     if (engine.hasGimbal && engine.Rb2d != null)
-                        //         gimbal = (engine.gimbal.animationElements.First(ae => ae.type == MoveData.Type.RotationZ).transform.localEulerAngles.z) * Mathf.Deg2Rad;
-
-                        //     // https://youtu.be/7j5yW5QDC2U?t=203
-                        //     Vector2 mx = new Vector2(Mathf.Cos(gimbal), Mathf.Sin(gimbal));
-                        //     Vector2 my = new Vector2(Mathf.Sin(gimbal), -Mathf.Cos(gimbal));
-                        //     Vector2 thrustPosition = -(engine.thrustPosition.Value.x * mx) - (engine.thrustPosition.Value.y * my);
-                        //     Vector2 thrustNormal = -(engine.thrustNormal.Value.x * mx) - (engine.thrustNormal.Value.y * my);
-
-                        //     position += (Vector2)engine.transform.TransformPoint(thrustPosition) * engine.thrust.Value;
-                        //     direction += (Vector2)engine.transform.TransformPoint(thrustPosition - thrustNormal) * engine.thrust.Value;
-                        //     thrust += engine.thrust.Value;
-                        // }
-
-                        // foreach (BoosterModule booster in boosters)
-                        // {
-                        //     Vector2 thrustPosition = booster.thrustPosition.Value;
-                        //     Vector2 thrustNormal = booster.thrustVector.Value;
-                        //     position += (Vector2)booster.transform.TransformPoint(thrustPosition) * thrustNormal.magnitude;
-                        //     direction += (Vector2)booster.transform.TransformPoint(thrustPosition - thrustNormal) * thrustNormal.magnitude;
-                        //     thrust += thrustNormal.magnitude;
-                        // }
-
-                        // position /= thrust;
-                        // direction /= thrust;
-
-                        // info += "\n• CoT to CoM angle: " + SignedNormaliseAngle(Mathf.Rad2Deg * Vector2.SignedAngle(centerOfMass - position, position - direction));
 
                         return (true, info);
                     }
                 }
                 return (false, info);
-
-                // float SignedNormaliseAngle(float a)
-                // {
-                //     while (a < -180) { a += 360; }
-                //     while (a >= 180) { a -= 360; }
-                //     return a;
-                // }
             },
             new Dictionary<string, object>()
         );
@@ -165,7 +120,9 @@ namespace InfoOverload
                     info += "\n• Radius: " + location.planet.Radius.ToDistanceString();
                     info += "\n• Max terrain height: " + location.planet.maxTerrainHeight.ToDistanceString();
                     info += "\n• SoI radius: " + location.planet.SOI.ToDistanceString();
-                    // info += "\n• " + ((float)location.planet.mass).ToMassString(false);
+
+                    Double2 camPos = WorldView.main.ViewLocation.position;
+                    info += $"\n• Camera Pos: {camPos.x:0.00}, {camPos.y:0.00}";
                     return (true, info);
                 }
                 else
@@ -278,28 +235,23 @@ namespace InfoOverload
                 readout.CreateVariable("frames", 0);
                 readout.CreateVariable("currentInterval", 0f);
                 readout.CreateVariable("elapsedTime", 0f);
-                readout.CreateVariable("elapsedTimePhysics", 0f);
                 readout.CreateVariable("fps", 0f);
-                readout.CreateVariable("fpsPhysics", 0f);
 
                 readout.vars["currentInterval"] = (float)readout.vars["currentInterval"] + Time.unscaledDeltaTime;
                 readout.vars["elapsedTime"] = (float)readout.vars["elapsedTime"] + (1/Time.unscaledDeltaTime);
-                readout.vars["elapsedTimePhysics"] = (float)readout.vars["elapsedTimePhysics"] + (1/Time.fixedUnscaledDeltaTime);
                 readout.vars["frames"] = (int)readout.vars["frames"] + 1;
+
                 if ((float)readout.vars["currentInterval"] >= updateInterval)
                 {
                     readout.vars["fps"] = (float)readout.vars["elapsedTime"] / (int)readout.vars["frames"];
-                    readout.vars["fpsPhysics"] = (float)readout.vars["elapsedTimePhysics"] / (int)readout.vars["frames"];
                     readout.vars["frames"] = 0;
                     readout.vars["elapsedTime"] = 0f;
-                    readout.vars["elapsedTimePhysics"] = 0f;
                     readout.vars["currentInterval"] = 0f;
                 }
 
                 string info = "Misc. Info:";
                 info += GameManager.main != null ? ("\n• No. rockets (L/T): " + GameManager.main.rockets.Count(r => r.physics.loader.Loaded) + "/" + GameManager.main.rockets.Count()) : "";
                 info += "\n• FPS: " + ((float)readout.vars["fps"]).ToString(2, true);
-                info += GameManager.main != null ? ("\n• Physics FPS: " + ((float)readout.vars["fpsPhysics"]).ToString(2, true)) : "";
                 return (true, info);
             },
             new Dictionary<string, object>()
@@ -331,7 +283,7 @@ namespace InfoOverload
                     partCount[part.displayName.Field]++;
                 }
 
-                foreach (var part in (from p in partCount orderby p.Value descending select p))
+                foreach (var part in from p in partCount orderby p.Value descending select p)
                 {
                     info += "\n• " + part.Key + ": " + part.Value;
                 }
@@ -374,8 +326,7 @@ namespace InfoOverload
 
             foreach (var part in parts ?? BuildManager.main.buildGrid.activeGrid.partsHolder.parts.ToArray())
             {
-                foreach (var partPoly in CreateBuildColliders(part)
-                             .SelectMany((PartCollider col) => col.colliders))
+                foreach (var partPoly in CreateBuildColliders(part).SelectMany(col => col.colliders))
                 {
                     foreach (var vertice in partPoly.points)
                     {
@@ -385,18 +336,6 @@ namespace InfoOverload
                         if (pos > highest) highest = pos;
                     }
                 }
-                /*foreach (var data in part.GetModules<PolygonData>())
-                {
-                    var polygon = data.polygon;
-
-                    foreach (var vertice in polygon.vertices)
-                    {
-                        var pos = height ? part.transform.TransformPoint(new Vector3(0, vertice.y, 0)).y : part.transform.TransformPoint(new Vector3(0, vertice.x, 0)).x;
-                        
-                        if (pos < lowest) lowest = pos;
-                        if (pos > highest) highest = pos;
-                    }
-                }*/
             }
             
             return Mathf.Abs(highest - lowest);

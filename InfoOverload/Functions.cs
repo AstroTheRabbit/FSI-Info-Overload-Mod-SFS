@@ -2,7 +2,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Globalization;
 using Newtonsoft.Json;
 using SFS;
 using SFS.UI.ModGUI;

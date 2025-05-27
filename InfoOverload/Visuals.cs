@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using SFS;
-using SFS.World.Maps;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace InfoOverload
 {
