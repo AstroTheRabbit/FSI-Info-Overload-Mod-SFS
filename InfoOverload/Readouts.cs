@@ -11,6 +11,7 @@ using SFS.Translations;
 using SFS.Parts.Modules;
 using static SFS.Base;
 using static SFS.Builds.BuildGrid;
+using SFS.Cameras;
 
 namespace InfoOverload
 {
@@ -120,9 +121,6 @@ namespace InfoOverload
                     info += "\n• Radius: " + location.planet.Radius.ToDistanceString();
                     info += "\n• Max terrain height: " + location.planet.maxTerrainHeight.ToDistanceString();
                     info += "\n• SoI radius: " + location.planet.SOI.ToDistanceString();
-
-                    Double2 camPos = WorldView.main.ViewLocation.position;
-                    info += $"\n• Camera Pos: {camPos.x:0.00}, {camPos.y:0.00}";
                     return (true, info);
                 }
                 else
@@ -251,6 +249,8 @@ namespace InfoOverload
 
                 string info = "Misc. Info:";
                 info += GameManager.main != null ? ("\n• No. rockets (L/T): " + GameManager.main.rockets.Count(r => r.physics.loader.Loaded) + "/" + GameManager.main.rockets.Count()) : "";
+                Double2 camPos = GameManager.main != null ? WorldView.ToGlobalPosition(WorldView.main.worldCamera.position) : (Double2) BuildManager.main.buildCamera.CameraPosition;
+                info += $"\n• Camera Pos: {camPos.x:0.00}, {camPos.y:0.00}";
                 info += "\n• FPS: " + ((float)readout.vars["fps"]).ToString(2, true);
                 return (true, info);
             },
