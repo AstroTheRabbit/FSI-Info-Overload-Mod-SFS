@@ -5,26 +5,31 @@ using SFS.Builds;
 using SFS.World;
 using SFS.UI;
 using SFS.World.Maps;
+using InfoOverload.Settings;
 
 namespace InfoOverload
 {
     public static class Patches
     {
         public static bool changeOutlines = false;
-        public static bool disableOutlines = false;
-        public static Color outlinesColor;
-        public static float outlinesWidth = 0.1f;
+        public static SettingBase<bool> disableOutlines;
+        public static SettingBase<Color> outlinesColor;
+        public static SettingBase<float> outlinesWidth;
         public static bool enableFreeCam = false;
-        public static bool lockFreeCam = true;
+        public static SettingBase<bool> lockFreeCam;
 
         [HarmonyPatch(typeof(BuildSelector), "DrawRegionalOutline")]
         class DisableOutlines
         {
             static bool Prefix(ref Color color, ref float width)
             {
-                color = changeOutlines ? outlinesColor : color;
-                width = changeOutlines ? outlinesWidth : width;
-                return !(changeOutlines && disableOutlines);
+                if (changeOutlines)
+                {
+                    color = outlinesColor.Value;
+                    width = outlinesWidth.Value;
+                    return !disableOutlines.Value;
+                }
+                return true;
             }
         }
 
@@ -35,16 +40,19 @@ namespace InfoOverload
             {
                 static bool Prefix(Vector2 oldValue, Vector2 newValue, ref Vector2 __result, PlayerController __instance)
                 {
-                    if (!enableFreeCam) return true;
-                    if (__instance.player.Value is Rocket rocket && newValue.magnitude >= rocket.physics.loader.loadDistance * 1.2f && lockFreeCam)
+                    if (enableFreeCam)
                     {
-                        __result = (newValue.normalized * (float)rocket.physics.loader.loadDistance * 1.2f) - newValue.normalized;
+                        if (lockFreeCam.Value && __instance.player.Value is Rocket rocket && newValue.magnitude >= rocket.physics.loader.loadDistance * 1.2f)
+                        {
+                            __result = (newValue.normalized * (float)rocket.physics.loader.loadDistance * 1.2f) - newValue.normalized;
+                        }
+                        else
+                        {
+                            __result = newValue;
+                        }
+                        return false;
                     }
-                    else
-                    {
-                        __result = newValue;
-                    }
-                    return false;
+                    return true;
                 }
             }
             // [HarmonyPatch(typeof(WorldView), "PositionCamera")]
@@ -101,8 +109,7 @@ namespace InfoOverload
             {
                 return delegate
                 {
-                    if (UI.holderSettings != null)
-                        UI.holderSettings.SetActive(open);
+                    UI.holderSettings?.SetActive(open);
                 };
             }
         }
@@ -113,7 +120,7 @@ namespace InfoOverload
             [HarmonyPostfix]
             static void Postfix()
             {
-                Visualiser.MapUpdate();
+                VisualsManager.MapUpdate();
             }
         }
     }

@@ -33,7 +33,7 @@ namespace InfoOverload
         public override void Load()
         {
 
-            Object.DontDestroyOnLoad(new GameObject("Info Overload - Visuals").AddComponent<Visualiser>().gameObject);
+            Object.DontDestroyOnLoad(new GameObject("Info Overload - Visuals").AddComponent<VisualsManager>().gameObject);
             Object.DontDestroyOnLoad((UI.uiUpdater = new GameObject("Info Overload - UI Updater").AddComponent<UIUpdater>()).gameObject);
             SceneHelper.OnSceneLoaded += UI.ManageUI;
 
@@ -91,20 +91,20 @@ namespace InfoOverload
 
         public static Dictionary<string, Readout> worldReadouts = new Dictionary<string, Readout>()
         {
-            {"ActiveCheats",    Readouts.ActiveCheats()},
-            {"RocketInfo",      Readouts.RocketInfo()},
-            {"PlanetInfo",      Readouts.PlanetInfo()},
-            {"AtmoInfo",        Readouts.AtmoInfo()},
-            {"PartCount",       Readouts.PartCount()},
-            {"MiscInfo",        Readouts.MiscInfo()},
+            {"ActiveCheats",    new Readouts.ActiveCheats()},
+            {"RocketInfo",      new Readouts.RocketInfo()},
+            {"PlanetInfo",      new Readouts.PlanetInfo()},
+            {"AtmoInfo",        new Readouts.AtmoInfo()},
+            {"PartCount",       new Readouts.PartCount()},
+            {"MiscInfo",        new Readouts.MiscInfo()},
         };
         public static Dictionary<string, Readout> buildReadouts = new Dictionary<string, Readout>()
         {
-            {"SelectedInfo",    Readouts.SelectedPartsInfo()},
-            {"BuildIno",        Readouts.BuildInfo()},
-            {"MiscInfo",        Readouts.MiscInfo()},
-            {"ActiveCheats",    Readouts.ActiveCheats()},
-            {"PartCount",       Readouts.PartCount()},
+            {"SelectedInfo",    new Readouts.SelectedPartsInfo()},
+            {"BuildIno",        new Readouts.BuildInfo()},
+            {"MiscInfo",        new Readouts.MiscInfo()},
+            {"ActiveCheats",    new Readouts.ActiveCheats()},
+            {"PartCount",       new Readouts.PartCount()},
         };
     }
 }

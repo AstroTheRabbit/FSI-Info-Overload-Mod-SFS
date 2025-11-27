@@ -4,25 +4,6 @@ using UnityEngine;
 
 namespace InfoOverload
 {
-    public class Visual
-    {
-        public string name;
-        public Action Draw;
-        public Action fixedUpdate;
-        public Action mapUpdate;
-        public Func<bool> CheckDestroy;
-
-        public Visual(string name, Action drawFunc, Func<bool> checkDestroyFunc, Action fixedUpdateFunc = null, Action mapUpdateFunc = null)
-        {
-            this.name = name;
-            this.Draw = drawFunc;
-            this.CheckDestroy = checkDestroyFunc;
-            this.fixedUpdate = fixedUpdateFunc;
-            this.mapUpdate = mapUpdateFunc;
-            Visualiser.main.visuals.Add(this);
-        }
-    }
-
     public static class GLDrawerHelper
     {
         public static void DrawCircle(Vector2 pos, float radius, int resolution, Color color, float thickness)
@@ -38,95 +19,92 @@ namespace InfoOverload
         }
     }
     
-    public class Visualiser : MonoBehaviour, I_GLDrawer
+    public class VisualsManager : MonoBehaviour, I_GLDrawer
     {
-        public static Visualiser main;
-        public List<Visual> visuals = new List<Visual>();
+        private static VisualsManager main;
+        private readonly Dictionary<string, Visual> visuals = new Dictionary<string, Visual>();
+
+        class Visual
+        {
+            private readonly Action drawWorld;
+            private readonly Action drawMap;
+
+            internal void DrawWorld() => drawWorld?.Invoke();
+            internal void DrawMap() => drawMap?.Invoke();
+
+            public Visual(Action drawWorld, Action drawMap)
+            {
+                this.drawWorld = drawWorld;
+                this.drawMap = drawMap;
+            }
+        }
+
+        public static void Add(string name, Action drawWorld = null, Action drawMap = null)
+        {
+            main.visuals.Add(name, new Visual(drawWorld, drawMap));
+        }
+
+        public static void Remove(string name)
+        {
+            main.visuals.Remove(name);
+        }
         
-        public static List<Visual> Visuals => main.visuals;
-        
-        private void Awake()
+        internal void Awake()
         {
             main = this;
         }
 
+        internal void Update()
+        {
+            if (GLDrawer.main == null)
+                return;
+
+            if (!GLDrawer.main.drawers.Contains(this))
+                GLDrawer.Register(this);
+        }
+
         void I_GLDrawer.Draw()
         {
-            List<Visual> erroredVisuals = new List<Visual>();
-            foreach (Visual v in visuals)
+            List<string> erroredVisuals = new List<string>();
+            foreach (KeyValuePair<string, Visual> kvp in visuals)
             {
                 try
                 {
-                    v.Draw();
+                    kvp.Value.DrawWorld();
                 }
                 catch (SystemException e)
                 {
-                    Debug.LogError($"Visual \"{v.name}\" errored!\n{e}");
-                    erroredVisuals.Add(v);
+                    Debug.LogError($"Visual \"{kvp.Key}\" errored when drawing in world!\n{e}");
+                    erroredVisuals.Add(kvp.Key);
                 }
             }
-            visuals.RemoveAll(v => erroredVisuals.Contains(v));
+            foreach (string name in erroredVisuals)
+            {
+                visuals.Remove(name);
+            }
         }
 
-        private void FixedUpdate()
+        /// Called by `MapDrawPatch`.
+        internal static void MapUpdate()
         {
-            List<Visual> erroredVisuals = new List<Visual>();
-            foreach (Visual v in visuals)
+
+            List<string> erroredVisuals = new List<string>();
+            foreach (KeyValuePair<string, Visual> kvp in main.visuals)
             {
                 try
                 {
-                    if (v.fixedUpdate != null)
-                        v.fixedUpdate();
+                    kvp.Value.DrawMap();
                 }
                 catch (SystemException e)
                 {
-                    Debug.LogError($"Visual \"{v.name}\" errored!\n{e}");
-                    erroredVisuals.Add(v);
+                    Debug.LogError($"Visual \"{kvp.Key}\" errored when drawing in map!\n{e}");
+                    erroredVisuals.Add(kvp.Key);
                 }
             }
-            visuals.RemoveAll(v => erroredVisuals.Contains(v));
-        }
-
-        public void Update()
-        {
-            if (!(GLDrawer.main is null) && !GLDrawer.main.drawers.Contains(this))
-                GLDrawer.Register(this);
-            
-            bool destroyedVisual;
-            do
+            foreach (string name in erroredVisuals)
             {
-                destroyedVisual = false;
-                foreach (Visual visual in Visuals)
-                {
-                    if (visual.CheckDestroy())
-                    {
-                        Visuals.Remove(visual);
-                        destroyedVisual = true;
-                        break;
-                    }
-                }
-                
-            } while (destroyedVisual);
-        }
-
-        public static void MapUpdate()
-        {
-
-            List<Visual> erroredVisuals = new List<Visual>();
-            foreach (Visual v in Visuals)
-            {
-                try
-                {
-                    if (v.mapUpdate != null)
-                        v.mapUpdate();
-                }
-                catch (SystemException e)
-                {
-                    Debug.LogError($"Visual \"{v.name}\" errored!\n{e}");
-                    erroredVisuals.Add(v);
-                }
+                main.visuals.Remove(name);
             }
-            Visuals.RemoveAll(v => erroredVisuals.Contains(v));
         }
     }
 }

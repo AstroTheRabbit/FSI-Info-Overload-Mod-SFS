@@ -13,7 +13,7 @@ namespace InfoOverload
     {
         public Dictionary<Function, Dictionary<string, ISettingsUI>> settingsWindowFunctionValues = new Dictionary<Function, Dictionary<string, ISettingsUI>>();
         public Dictionary<Readout, Dictionary<string, ISettingsUI>> settingsWindowReadoutValues = new Dictionary<Readout, Dictionary<string, ISettingsUI>>();
-        
+
         private void Update()
         {
             UI.extraSettings.UpdateWindows();
@@ -47,13 +47,13 @@ namespace InfoOverload
                 {
                     try
                     {
-                        (bool show, string text) = readout.updater(readout);
-                        if (show)
+                        string text = readout.OnUpdate();
+                        if (text != null)
                             fullText += text + "\n\n";
                     }
                     catch (System.Exception e)
                     {
-                        Debug.Log($"Info Overload - Readout \"{readout.name}\" encountered an error: {e}");
+                        Debug.Log($"Info Overload - Readout \"{readout.Name}\" encountered an error: {e}");
                     }
                 }
                 UI.infoTextbox.Text = fullText;
@@ -74,6 +74,14 @@ namespace InfoOverload
                 {
                     kvp.Key.settings[setting.Key] = setting.Value.Value;
                 }
+            }
+        }
+
+        private void FixedUpdate()
+        {
+            foreach (Readout readout in UI.readouts.Values.Where(r => r.displayReadout))
+            {
+                readout.OnFixedUpdate();
             }
         }
     }
@@ -242,7 +250,7 @@ namespace InfoOverload
 
                 var titleBar = Builder.CreateContainer(box);
                 titleBar.CreateLayoutGroup(Type.Horizontal, padding: new RectOffset(5, 5, 5, 5));
-                Builder.CreateLabel(titleBar, windowWidth/2, 40, text: readout.Value.name);
+                Builder.CreateLabel(titleBar, windowWidth/2, 40, text: readout.Value.Name);
                 Builder.CreateToggle(titleBar, () => readout.Value.displayReadout, onChange: () => readout.Value.displayReadout = !readout.Value.displayReadout);
                 
                 UI.uiUpdater.settingsWindowReadoutValues[readout.Value] = new Dictionary<string, ISettingsUI>();
