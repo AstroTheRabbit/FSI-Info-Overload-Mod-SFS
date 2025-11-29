@@ -21,7 +21,7 @@ namespace InfoOverload
         [HarmonyPatch(typeof(BuildSelector), "DrawRegionalOutline")]
         class DisableOutlines
         {
-            static bool Prefix(ref Color color, ref float width)
+            internal static bool Prefix(ref Color color, ref float width)
             {
                 if (changeOutlines)
                 {
@@ -38,7 +38,7 @@ namespace InfoOverload
             [HarmonyPatch(typeof(PlayerController), "ClampTrackingOffset")]
             class StopClamping
             {
-                static bool Prefix(Vector2 oldValue, Vector2 newValue, ref Vector2 __result, PlayerController __instance)
+                internal static bool Prefix(Vector2 newValue, ref Vector2 __result, PlayerController __instance)
                 {
                     if (enableFreeCam)
                     {
@@ -76,49 +76,49 @@ namespace InfoOverload
             // }
         }
 
-        class SettingsWindowManager
-        {
-            static bool pauseMenuOpening = false;
+        // class SettingsWindowManager
+        // {
+        //     static bool pauseMenuOpening = false;
 
-            [HarmonyPatch(typeof(GameManager), nameof(GameManager.OpenMenu))]
-            class WorldOpen
-            {
-                static void Prefix() => pauseMenuOpening = true;
-            }
-            [HarmonyPatch(typeof(BuildManager), nameof(GameManager.OpenMenu))]
-            class BuildOpen
-            {
-                static void Prefix() => pauseMenuOpening = true;
-            }
+        //     [HarmonyPatch(typeof(GameManager), nameof(GameManager.OpenMenu))]
+        //     class WorldOpen
+        //     {
+        //         static void Prefix() => pauseMenuOpening = true;
+        //     }
+        //     [HarmonyPatch(typeof(BuildManager), nameof(GameManager.OpenMenu))]
+        //     class BuildOpen
+        //     {
+        //         static void Prefix() => pauseMenuOpening = true;
+        //     }
 
-            [HarmonyPatch(typeof(OptionsMenuDrawer), nameof(OptionsMenuDrawer.CreateDelegate))]
-            class Setup
-            {
-                static void Prefix(ref Action onOpen, ref Action onClose)
-                {
-                    if (pauseMenuOpening)
-                    {
-                        onOpen = (Action)Action.Combine(onClose, ToggleSettings(true));
-                        onClose = (Action)Action.Combine(onClose, ToggleSettings(false));
-                    }
-                    pauseMenuOpening = false;
-                }
-            }
+        //     [HarmonyPatch(typeof(OptionsMenuDrawer), nameof(OptionsMenuDrawer.CreateDelegate))]
+        //     class Setup
+        //     {
+        //         static void Prefix(ref Action onOpen, ref Action onClose)
+        //         {
+        //             if (pauseMenuOpening)
+        //             {
+        //                 onOpen = (Action)Action.Combine(onClose, ToggleSettings(true));
+        //                 onClose = (Action)Action.Combine(onClose, ToggleSettings(false));
+        //             }
+        //             pauseMenuOpening = false;
+        //         }
+        //     }
 
-            static Action ToggleSettings(bool open)
-            {
-                return delegate
-                {
-                    UI.holderSettings?.SetActive(open);
-                };
-            }
-        }
+        //     static Action ToggleSettings(bool open)
+        //     {
+        //         return delegate
+        //         {
+        //             UI.holderSettings?.SetActive(open);
+        //         };
+        //     }
+        // }
         
         [HarmonyPatch(typeof(MapManager), "DrawTrajectories")]
         class MapDrawPatch
         {
             [HarmonyPostfix]
-            static void Postfix()
+            internal static void Postfix()
             {
                 VisualsManager.MapUpdate();
             }

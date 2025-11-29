@@ -14,7 +14,7 @@ using InfoOverload.Settings;
 
 namespace InfoOverload.Functions
 {
-    /// Despawn hitbox of the launchpad. Made by N2O4.
+    /// Despawn hitbox of the launchpad. Made by VerdiX.
     public class DespawnHitbox : Function
     {
         public override string Name => "Despawn Hitbox";
@@ -27,7 +27,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Active = !Button.Active)
+            if (Button.Selected = !Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -80,7 +80,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Active = !Button.Active)
+            if (Button.Selected = !Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -156,7 +156,7 @@ namespace InfoOverload.Functions
         }
         public override void OnToggle()
         {
-            if (Button.Active = !Button.Active)
+            if (Button.Selected = !Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -223,7 +223,7 @@ namespace InfoOverload.Functions
         
         public override void OnToggle()
         {
-            if (Button.Active = !Button.Active)
+            if (Button.Selected = !Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -352,7 +352,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Active = !Button.Active)
+            if (Button.Selected = !Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -386,10 +386,10 @@ namespace InfoOverload.Functions
                             int resolution = 64;
                             
                             float radius = (float)rocket.physics.loader.loadDistance * 1.2f; // Unload radius.
-                            MapVisualHelper.DrawCircle(loc.position, loc.planet, radius, resolution, unload);
+                            MapVisuals.DrawCircle(loc.position, loc.planet, radius, resolution, unload);
                             
                             radius = (float)rocket.physics.loader.loadDistance * 0.8f; // Load radius.
-                            MapVisualHelper.DrawCircle(loc.position, loc.planet, radius, resolution, load);
+                            MapVisuals.DrawCircle(loc.position, loc.planet, radius, resolution, load);
                         }
                     }
                 );
@@ -407,7 +407,7 @@ namespace InfoOverload.Functions
         public override void OnToggle()
         {
             InteriorManager.main.ToggleInteriorView();
-            Button.Active = InteriorManager.main.interiorView.Value;
+            Button.Selected = InteriorManager.main.interiorView.Value;
         }
     }
     
@@ -425,7 +425,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Active = !Button.Active)
+            if (Button.Selected = !Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -574,7 +574,7 @@ namespace InfoOverload.Functions
         }
         public override void OnToggle()
         {
-            if (Button.Active = !Button.Active)
+            if (Button.Selected = !Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -618,7 +618,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            Patches.changeOutlines = Button.Active = !Button.Active;
+            Patches.changeOutlines = Button.Selected = !Button.Selected;
             Patches.outlinesColor = Settings.GetRef<Color>(OUTLINE_COLOR);
             Patches.outlinesWidth = Settings.GetRef<float>(OUTLINE_WIDTH);
             Patches.disableOutlines = Settings.GetRef<bool>(DISABLE_OUTLINES);
@@ -637,7 +637,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            Patches.enableFreeCam = Button.Active = !Button.Active;
+            Patches.enableFreeCam = Button.Selected = !Button.Selected;
             Patches.lockFreeCam = Settings.GetRef<bool>(LOCK_TO_LOAD_DISTANCE);
             // * Reset camera position when free cam is turned off.
             if (!Patches.enableFreeCam) 
@@ -671,7 +671,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Active = !Button.Active)
+            if (Button.Selected = !Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -764,7 +764,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Active = !Button.Active)
+            if (Button.Selected = !Button.Selected)
             {
                 VisualsManager.Add
                 (

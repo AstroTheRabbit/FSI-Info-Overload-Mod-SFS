@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using SFS.Parts;
 using SFS.Parts.Modules;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using static SFS.Builds.BuildGrid;
 
 namespace InfoOverload
@@ -43,5 +44,22 @@ namespace InfoOverload
                 }
             }
         }  
+    }
+
+    public static class SceneUtil
+    {
+        public static string CurrentName => GetCurrent("world", "build");
+        public static T GetCurrent<T>(T world, T build)
+        {
+            switch (SceneManager.GetActiveScene().name)
+            {
+                case "World_PC":
+                    return world;
+                case "Build_PC":
+                    return build;
+                default:
+                    return default;
+            }
+        }
     }
 }

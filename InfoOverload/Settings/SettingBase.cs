@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Schema;
 using SFS.UI.ModGUI;
+using UnityEngine;
 using Type = System.Type;
 
 namespace InfoOverload.Settings
@@ -42,42 +45,57 @@ namespace InfoOverload.Settings
         }
     }
 
-    /// Reads/writes `SettingBase.setting` instead of reading/writing `SettingBase` itself.
-    internal class SettingsConverter : JsonConverter
+    /// Ensures the correct (de)serialization of `SettingBase<T>` instances in settings dictionaries.
+    public class SettingsDictionary : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {
-            Type baseType = objectType.BaseType;
-            if (baseType != null && baseType.IsGenericType)
-                return baseType.GetGenericTypeDefinition() == typeof(SettingBase<>);
-            else
-                return false;
+            return typeof(IDictionary<string, SettingBase>).IsAssignableFrom(objectType);
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if (value is SettingBase sb)
+            Dictionary<string, SettingBase> dict = value as Dictionary<string, SettingBase>;
+            writer.WriteStartObject();
+            foreach (KeyValuePair<string, SettingBase> kvp in dict)
             {
-                JToken token = JToken.FromObject(sb.setting, serializer);
-                token.WriteTo(writer);
+                writer.WritePropertyName(kvp.Key);
+                serializer.Serialize(writer, kvp.Value.setting);
             }
-            else
-            {
-                throw new InvalidCastException($"SettingsConverter: `{value.GetType().Name}` is not a `SettingBase`!");
-            }
+            writer.WriteEndObject();
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            if (existingValue is SettingBase sb)
+            if (existingValue is IDictionary<string, SettingBase> dict)
             {
-                JToken token = JToken.ReadFrom(reader);
-                sb.setting = sb.FromToken(token);
-                return existingValue;
+                if (JToken.ReadFrom(reader) is JObject obj)
+                {
+                    foreach (KeyValuePair<string, JToken> kvp in obj)
+                    {
+                        if (dict.TryGetValue(kvp.Key, out SettingBase sb))
+                        {
+                            sb.setting = sb.FromToken(kvp.Value);
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"SettingsDictionary.ReadJson: attempted to load a setting (\"{kvp.Key}\") which was not registered beforehand.");
+                        }
+                    }
+                    return dict;
+                }
+                else
+                {
+                    throw new JsonException("SettingsDictionary.ReadJson: invalid JSON!");
+                }
+            }
+            else if (existingValue is null)
+            {
+                throw new ArgumentNullException($"SettingsDictionary.ReadJson: `{nameof(existingValue)}` is null!");
             }
             else
             {
-                throw new InvalidCastException($"SettingsConverter: `{existingValue.GetType().Name}` is not a `SettingBase`!");
+                throw new ArgumentNullException($"SettingsDictionary.ReadJson: `{nameof(existingValue)}` is an invalid type ({existingValue.GetType()})!");
             }
         }
     }

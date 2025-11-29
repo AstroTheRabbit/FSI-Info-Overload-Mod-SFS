@@ -24,32 +24,29 @@ namespace InfoOverload.Functions
 
     public class FunctionButton
     {
-        private Button button;
-        private ButtonPC buttonPC;
-        public bool Active
+        private readonly ButtonPC button;
+        public bool Selected
         {
-            get => AccessTools.FieldRefAccess<ButtonPC, bool>("selected").Invoke(buttonPC);
-            set => buttonPC.SetSelected(value);
+            get => AccessTools.FieldRefAccess<ButtonPC, bool>("selected").Invoke(button);
+            set => button.SetSelected(value);
+        }
+
+        private FunctionButton(ButtonPC button)
+        {
+            this.button = button;
         }
 
         public static FunctionButton Create(Function function, Window window, int width, int height)
         {
-            FunctionButton button = new FunctionButton();
-            button.button = Builder.CreateButton
+            Button button = Builder.CreateButton
             (
                 window,
                 width,
                 height,
-                onClick: function.OnToggle,
-                text: function.Name
+                text: function.Name,
+                onClick: function.OnToggle
             );
-            button.buttonPC = new Traverse(button).Field<ButtonPC>("_button").Value;
-            return function.Button = button;
+            return function.Button = new FunctionButton(new Traverse(button).Field<ButtonPC>("_button").Value);
         }
-    }
-
-    public static class FunctionManager
-    {
-
     }
 }

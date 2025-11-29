@@ -1,6 +1,7 @@
 using System;
-using SFS.UI.ModGUI;
 using UnityEngine;
+using SFS.UI.ModGUI;
+using InfoOverload.UI;
 using Type = SFS.UI.ModGUI.Type;
 
 namespace InfoOverload.Settings
@@ -26,7 +27,7 @@ namespace InfoOverload.Settings
 
     public class FloatSetting : SettingBase<float>
     {
-        private Func<float, bool> filter = null;
+        private readonly Func<float, bool> filter = null;
         public FloatSetting(float defaultValue, Func<float, bool> filter = null)
         {
             Value = defaultValue;
@@ -50,7 +51,7 @@ namespace InfoOverload.Settings
 
     public class IntSetting : SettingBase<int>
     {
-        private Func<int, bool> filter = null;
+        private readonly Func<int, bool> filter = null;
         public IntSetting(int defaultValue, Func<int, bool> filter = null)
         {
             Value = defaultValue;

@@ -4,12 +4,12 @@ using UnityEngine;
 using UnityEngine.Events;
 using SFS.UI.ModGUI;
 
-namespace InfoOverload.Settings
+namespace InfoOverload.UI
 {
-    public static class SettingsHelpers
+    public static class Helpers
     {
         public static Color DefaultColor = new Color(0.008f, 0.090f, 0.180f, 0.941f);
-        public static string ToStringUI(this float input, int decimals = 4)
+        public static string ToStringUI(this float input, int decimals = 3)
         {
             return input.ToString(decimals, false);
         }

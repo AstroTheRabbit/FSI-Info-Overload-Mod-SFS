@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 
 namespace InfoOverload.Settings
 {
-    [JsonConverter(typeof(SettingsConverter))]
     public class FunctionSettings
     {
         /// Is the function visible in the UI?
@@ -14,6 +13,7 @@ namespace InfoOverload.Settings
         [JsonProperty]
         public bool active = false;
         [JsonProperty]
+        [JsonConverter(typeof(SettingsDictionary))]
         private readonly Dictionary<string, SettingBase> settings = new Dictionary<string, SettingBase>();
 
         public void Register<T>(string name, SettingBase<T> defaultValue)

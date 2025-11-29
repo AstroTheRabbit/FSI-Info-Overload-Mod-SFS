@@ -4,13 +4,13 @@ using Newtonsoft.Json;
 
 namespace InfoOverload.Settings
 {
-    [JsonConverter(typeof(SettingsConverter))]
     public class ReadoutSettings
     {
         /// Is the readout visible in the UI?
         [JsonProperty]
         public bool visible = true;
         [JsonProperty]
+        [JsonConverter(typeof(SettingsDictionary))]
         private readonly Dictionary<string, SettingBase> settings = new Dictionary<string, SettingBase>();
 
         public void Register<T>(string name, SettingBase<T> defaultValue)
