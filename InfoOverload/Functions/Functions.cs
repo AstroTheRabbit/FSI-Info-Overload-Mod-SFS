@@ -74,7 +74,7 @@ namespace InfoOverload.Functions
             Settings.Register(POSITIVE_COLOR, new ColorSetting(Color.green));
             Settings.Register(NEGATIVE_COLOR, new ColorSetting(Color.red));
             Settings.Register(INACTIVE_COLOR, new ColorSetting(Color.magenta));
-            Settings.Register(RANGE_CIRCLE_DETAIL, new FloatSetting(50f));
+            Settings.Register(RANGE_CIRCLE_DETAIL, new FloatSetting(50f, FloatSetting.IsPositive));
             Settings.Register(FORCE_LINE_SCALE, new FloatSetting(1f));
         }
 
@@ -148,7 +148,7 @@ namespace InfoOverload.Functions
 
         protected override void RegisterSettings()
         {
-            Settings.Register(DOT_RADIUS, new FloatSetting(0.25f));
+            Settings.Register(DOT_RADIUS, new FloatSetting(0.25f, FloatSetting.IsPositive));
             Settings.Register(COM_COLOR, new ColorSetting(Color.yellow));
             Settings.Register(SELECTED_COM_COLOR, new ColorSetting(Color.green));
             Settings.Register(SHOW_FORCE_OF_GRAVITY, new BoolSetting(false));
@@ -217,7 +217,7 @@ namespace InfoOverload.Functions
         const string SELECTED_COT_COLOR = "Selected CoT Color";
         protected override void RegisterSettings()
         {
-            Settings.Register(COT_COLOR, new ColorSetting(new Color(1f, 0.5f, 0f)));
+            Settings.Register(COT_COLOR, new ColorSetting(1f, 0.5f, 0f));
             Settings.Register(SELECTED_COT_COLOR, new ColorSetting(Color.green));
         }
         
@@ -420,7 +420,7 @@ namespace InfoOverload.Functions
         protected override void RegisterSettings()
         {
             Settings.Register(COLLIDER_COLOR, new ColorSetting(Color.cyan));
-            Settings.Register(TERRAIN_ONLY_COLLIDER_COLOR, new ColorSetting(new Color(0, 0.5f, 1f)));
+            Settings.Register(TERRAIN_ONLY_COLLIDER_COLOR, new ColorSetting(0, 0.5f, 1f));
         }
 
         public override void OnToggle()
@@ -665,7 +665,7 @@ namespace InfoOverload.Functions
             Settings.Register(SHOW_DRAG_FORCE_LINE, new BoolSetting(true));
             Settings.Register(DRAG_FORCE_LINE_SCALE, new FloatSetting(0.125f));
             Settings.Register(EXPOSED_SURFACES_COLOR, new ColorSetting(Color.red));
-            Settings.Register(ALL_SURFACES_COLOR, new ColorSetting(new Color(0.5f, 0, 0)));
+            Settings.Register(ALL_SURFACES_COLOR, new ColorSetting(0.5f, 0, 0));
             Settings.Register(DRAG_FORCE_LINE_COLOR, new ColorSetting(Color.red));
         }
 
@@ -759,7 +759,7 @@ namespace InfoOverload.Functions
 
         protected override void RegisterSettings()
         {
-            Settings.Register(BORDER_COLOR, new ColorSetting(new Color(1f, 0.5f, 0f)));
+            Settings.Register(BORDER_COLOR, new ColorSetting(1f, 0.5f, 0f));
         }
 
         public override void OnToggle()

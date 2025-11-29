@@ -17,6 +17,9 @@ namespace InfoOverload.Settings
         public static Dictionary<string, FunctionSettings> WorldFunctions = new Dictionary<string, FunctionSettings>();
         public static Dictionary<string, FunctionSettings> BuildFunctions = new Dictionary<string, FunctionSettings>();
 
+        public static Dictionary<string, ReadoutSettings> CurrentReadouts => SceneUtil.GetCurrent(WorldReadouts, BuildReadouts);
+        public static Dictionary<string, FunctionSettings> CurrentFunctions => SceneUtil.GetCurrent(WorldFunctions, BuildFunctions);
+
         public static FilePath FilePath_WorldReadouts => Main.Folder.ExtendToFile("world-readouts.txt");
         public static FilePath FilePath_BuildReadouts => Main.Folder.ExtendToFile("build-readouts.txt");
         public static FilePath FilePath_WorldFunctions => Main.Folder.ExtendToFile("world-functions.txt");
@@ -24,8 +27,9 @@ namespace InfoOverload.Settings
 
         public static void Init()
         {
-            // Save();
             Load();
+            Save();
+            Application.quitting += Save;
         }
 
         public static void Save()
@@ -45,6 +49,10 @@ namespace InfoOverload.Settings
 
             void Load<T>(Dictionary<string, T> settings, FilePath path)
             {
+                if (!path.FileExists())
+                    // * The settings file doesn't exist, so we should keep the default settings.
+                    return;
+
                 string text = path.ReadText();
                 if (JToken.Parse(text) is JObject json)
                 {
@@ -63,7 +71,7 @@ namespace InfoOverload.Settings
                 }
                 else
                 {
-                    throw new JsonException($"Settings.Load: Invalid JSON saved in file path: \"{path}\"");
+                    Debug.LogError($"Settings.Load: Invalid JSON saved in file path: \"{path}\"");
                 }
             }
         }
@@ -127,16 +135,7 @@ namespace InfoOverload.Settings
 
     public class WindowSettings
     {
-        private static WindowSettings instance = null;
-        public static WindowSettings Instance
-        {
-            get
-            {
-                if (instance == null)
-                    Load();
-                return instance;
-            }
-        }
+        public static WindowSettings Instance { get; private set; }
 
         public static FilePath FilePath => Main.Folder.ExtendToFile("window-settings.txt");
         public class WindowState
@@ -157,12 +156,14 @@ namespace InfoOverload.Settings
 
         public static void Init()
         {
+            Load();
+            Save();
             Application.quitting += Save;
         }
 
         public static void Save()
         {
-            JsonWrapper.SaveAsJson(FilePath, instance, true);
+            JsonWrapper.SaveAsJson(FilePath, Instance, true);
         }
 
         public static void Load()
@@ -172,7 +173,7 @@ namespace InfoOverload.Settings
                 try
                 {
                     string json = FilePath.ReadText();
-                    instance = JsonConvert.DeserializeObject<WindowSettings>(json);
+                    Instance = JsonConvert.DeserializeObject<WindowSettings>(json);
                     return;
                 }
                 catch (Exception e)
@@ -180,7 +181,7 @@ namespace InfoOverload.Settings
                     Debug.LogException(new Exception("WindowSettings.Load: Failed to load window settings!", e));
                 }
             }
-            instance = new WindowSettings();
+            Instance = new WindowSettings();
         }
 
         public WindowState WorldReadouts = new WindowState(400, 700);

@@ -20,7 +20,7 @@ namespace InfoOverload.Readouts
 
         protected override void RegisterSettings()
         {
-            Settings.Register(ACCELERATION_INTERVAL, new FloatSetting(0.25f));
+            Settings.Register(ACCELERATION_INTERVAL, new FloatSetting(0.25f, FloatSetting.IsPositive));
         }
 
         Rocket rocket = null;
@@ -267,8 +267,8 @@ namespace InfoOverload.Readouts
 
         protected override void RegisterSettings()
         {
-            Settings.Register(NORMAL_INTERVAL, new FloatSetting(0.5f));
-            Settings.Register(PHYSICS_INTERVAL, new FloatSetting(0.5f));
+            Settings.Register(NORMAL_INTERVAL, new FloatSetting(0.5f, FloatSetting.IsPositive));
+            Settings.Register(PHYSICS_INTERVAL, new FloatSetting(0.5f, FloatSetting.IsPositive));
         }
 
         private int count_normal = 0;

@@ -7,21 +7,6 @@ using ModLoader.Helpers;
 
 namespace InfoOverload
 {
-    public static class GLDrawerHelper
-    {
-        public static void DrawCircle(Vector2 pos, float radius, int resolution, Color color, float thickness)
-        {
-            for (int i = 0; i < resolution; i++)
-            {
-                float angle = (float)i/resolution * 2 * Mathf.PI;
-                float theta = (float)(i+1)/resolution * 2 * Mathf.PI;
-                Vector2 pos1 = new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius) + pos;
-                Vector2 pos2 = new Vector2(Mathf.Cos(theta) * radius, Mathf.Sin(theta) * radius) + pos;
-                GLDrawer.DrawLine(pos1, pos2, color, thickness);
-            }
-        }
-    }
-    
     public class VisualsManager : MonoBehaviour, I_GLDrawer
     {
         private static VisualsManager main;
@@ -118,6 +103,21 @@ namespace InfoOverload
             foreach (string name in erroredVisuals)
             {
                 main.visuals.Remove(name);
+            }
+        }
+    }
+
+    public static class GLDrawerHelper
+    {
+        public static void DrawCircle(Vector2 pos, float radius, int resolution, Color color, float thickness)
+        {
+            for (int i = 0; i < resolution; i++)
+            {
+                float angle = (float)i/resolution * 2 * Mathf.PI;
+                float theta = (float)(i+1)/resolution * 2 * Mathf.PI;
+                Vector2 pos1 = new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius) + pos;
+                Vector2 pos2 = new Vector2(Mathf.Cos(theta) * radius, Mathf.Sin(theta) * radius) + pos;
+                GLDrawer.DrawLine(pos1, pos2, color, thickness);
             }
         }
     }

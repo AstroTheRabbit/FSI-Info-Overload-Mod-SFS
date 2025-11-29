@@ -55,6 +55,8 @@ namespace InfoOverload
                     return true;
                 }
             }
+
+            // TODO: Get free cam to continue functioning in scaled space? Might be kinda unnecessary and/or probably very buggy...
             // [HarmonyPatch(typeof(WorldView), "PositionCamera")]
             // class FixScaledSpaceMovement
             // {
@@ -75,44 +77,6 @@ namespace InfoOverload
             //     }
             // }
         }
-
-        // class SettingsWindowManager
-        // {
-        //     static bool pauseMenuOpening = false;
-
-        //     [HarmonyPatch(typeof(GameManager), nameof(GameManager.OpenMenu))]
-        //     class WorldOpen
-        //     {
-        //         static void Prefix() => pauseMenuOpening = true;
-        //     }
-        //     [HarmonyPatch(typeof(BuildManager), nameof(GameManager.OpenMenu))]
-        //     class BuildOpen
-        //     {
-        //         static void Prefix() => pauseMenuOpening = true;
-        //     }
-
-        //     [HarmonyPatch(typeof(OptionsMenuDrawer), nameof(OptionsMenuDrawer.CreateDelegate))]
-        //     class Setup
-        //     {
-        //         static void Prefix(ref Action onOpen, ref Action onClose)
-        //         {
-        //             if (pauseMenuOpening)
-        //             {
-        //                 onOpen = (Action)Action.Combine(onClose, ToggleSettings(true));
-        //                 onClose = (Action)Action.Combine(onClose, ToggleSettings(false));
-        //             }
-        //             pauseMenuOpening = false;
-        //         }
-        //     }
-
-        //     static Action ToggleSettings(bool open)
-        //     {
-        //         return delegate
-        //         {
-        //             UI.holderSettings?.SetActive(open);
-        //         };
-        //     }
-        // }
         
         [HarmonyPatch(typeof(MapManager), "DrawTrajectories")]
         class MapDrawPatch

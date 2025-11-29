@@ -4,20 +4,21 @@ using Newtonsoft.Json;
 
 namespace InfoOverload.Settings
 {
-    public class ReadoutSettings
+    public class ReadoutSettings : SettingsHolder
     {
         /// Is the readout visible in the UI?
-        [JsonProperty]
-        public bool visible = true;
-        [JsonProperty]
+        [JsonProperty()]
+        internal override bool Visible { get; set; } = true;
+        internal override Dictionary<string, SettingBase> Settings => settings;
+        [JsonProperty()]
         [JsonConverter(typeof(SettingsDictionary))]
         private readonly Dictionary<string, SettingBase> settings = new Dictionary<string, SettingBase>();
 
         public void Register<T>(string name, SettingBase<T> defaultValue)
         {
-            if (!settings.ContainsKey(name))
+            if (!Settings.ContainsKey(name))
             {
-                settings.Add(name, defaultValue);
+                Settings.Add(name, defaultValue);
             }
             else
             {
@@ -32,7 +33,7 @@ namespace InfoOverload.Settings
 
         public SettingBase<T> GetRef<T>(string name)
         {
-            if (settings.TryGetValue(name, out SettingBase sb))
+            if (Settings.TryGetValue(name, out SettingBase sb))
             {
                 if (sb is SettingBase<T> sbt)
                 {

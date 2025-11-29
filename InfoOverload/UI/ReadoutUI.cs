@@ -79,7 +79,7 @@ namespace InfoOverload.UI
                     try
                     {
                         readout.OnUpdate();
-                        if (!window.Minimized && readout.Settings.visible && readout.GetText() is string text)
+                        if (!window.Minimized && readout.Settings.Visible && readout.GetText() is string text)
                             result += text + "\n\n";
                     }
                     catch (Exception e)

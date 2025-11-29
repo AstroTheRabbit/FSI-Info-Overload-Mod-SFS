@@ -2,13 +2,18 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
-using SFS.UI.ModGUI;
 using UnityEngine;
+using SFS.UI.ModGUI;
 using Type = System.Type;
 
 namespace InfoOverload.Settings
 {
+    public abstract class SettingsHolder
+    {
+        internal abstract bool Visible { get; set; }
+        internal abstract Dictionary<string, SettingBase> Settings { get; }
+    }
+
     public abstract class SettingBase
     {
         internal object setting;

@@ -31,7 +31,7 @@ namespace InfoOverload.UI
             WindowSettings.WindowState state = WindowSettings.CurrentFunctions;
             List<Function> functions = Functions.Functions.CurrentFunctions;
 
-            if (functions.All(f => !f.Settings.visible))
+            if (functions.All(f => !f.Settings.Visible))
                 return;
 
             holder = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "Info Overload - Functions Window Holder");

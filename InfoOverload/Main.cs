@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using HarmonyLib;
-using UnityEngine;
 using UITools;
 using SFS.IO;
-using SFS.Parsers.Json;
 using ModLoader;
 using InfoOverload.UI;
 
@@ -50,10 +48,10 @@ namespace InfoOverload
             Readouts.Readouts.RegisterSettings();
             Functions.Functions.RegisterSettings();
 
-            // TODO: Loading settings
             Settings.Settings.Init();
             Settings.WindowSettings.Init();
 
+            SettingsUI.Init();
             ReadoutUI.Init();
             FunctionUI.Init();
         }
