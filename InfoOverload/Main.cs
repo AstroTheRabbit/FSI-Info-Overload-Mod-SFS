@@ -7,7 +7,7 @@ using InfoOverload.UI;
 
 namespace InfoOverload
 {
-    public class Main : Mod// !, IUpdatable
+    public class Main : Mod, IUpdatable
     {
         private static Main main;
         public const string modNameID = "fsi-info-overload";
