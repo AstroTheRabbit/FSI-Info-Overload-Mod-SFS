@@ -86,6 +86,8 @@ namespace InfoOverload
         /// Called by `MapDrawPatch`.
         internal static void MapUpdate()
         {
+            if (main == null)
+                return;
 
             List<string> erroredVisuals = new List<string>();
             foreach (KeyValuePair<string, Visual> kvp in main.visuals)
