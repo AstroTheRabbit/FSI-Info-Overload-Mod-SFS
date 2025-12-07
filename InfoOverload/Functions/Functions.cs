@@ -770,45 +770,49 @@ namespace InfoOverload.Functions
                 (
                     Name,
                     delegate
-                {
-                    List<EngineModule> engines = new List<EngineModule>();
-                    if (SceneManager.GetActiveScene().name == "Build_PC")
                     {
-                        engines = BuildManager.main.buildGrid.activeGrid.partsHolder.GetModules<EngineModule>().ToList();
-                    }
-                    else if (SceneManager.GetActiveScene().name == "World_PC")
-                    {
-                        foreach (Rocket rocket in GameManager.main.rockets)
+                        List<EngineModule> engines = new List<EngineModule>();
+                        if (SceneManager.GetActiveScene().name == "Build_PC")
                         {
-                            if (rocket.physics.loader.Loaded)
-                                engines.AddRange(rocket.partHolder.GetModules<EngineModule>().ToList());
+                            engines = BuildManager.main.buildGrid.activeGrid.partsHolder.GetModules<EngineModule>().ToList();
+                        }
+                        else if (SceneManager.GetActiveScene().name == "World_PC")
+                        {
+                            foreach (Rocket rocket in GameManager.main.rockets)
+                            {
+                                if (rocket.physics.loader.Loaded)
+                                    engines.AddRange(rocket.partHolder.GetModules<EngineModule>().ToList());
+                            }
+                        }
+                        
+                        Color color = Settings.Get<Color>(BORDER_COLOR);
+                        foreach (EngineModule engine in engines)
+                        {
+                            BoxCollider2D col = engine.GetComponentInChildren<BoxCollider2D>(true);
+                            if (col == null || !engine.engineOn.Value)
+                                continue;
+
+                            float top = col.offset.y + (col.size.y / 2f);
+                            float bottom = col.offset.y - (col.size.y / 2f);
+                            float left = col.offset.x - (col.size.x / 2f);
+                            float right = col.offset.x + (col.size.x /2f);
+                            
+                            Vector2 topLeft = col.transform.TransformPoint(new Vector2(left, top));
+                            Vector2 topRight = col.transform.TransformPoint(new Vector2(right, top));
+                            Vector2 btmLeft = col.transform.TransformPoint(new Vector2(left, bottom));
+                            Vector2 btmRight = col.transform.TransformPoint(new Vector2(right, bottom));
+
+                            GLDrawer.DrawLine(topLeft, topRight, color, 0.1f);
+                            GLDrawer.DrawLine(btmRight, topRight, color, 0.1f);
+                            GLDrawer.DrawLine(btmRight, btmLeft, color, 0.1f);
+                            GLDrawer.DrawLine(topLeft, btmLeft, color, 0.1f);
                         }
                     }
-                    
-                    Color color = Settings.Get<Color>(BORDER_COLOR);
-                    foreach (EngineModule engine in engines)
-                    {
-                        BoxCollider2D col = engine.GetComponentInChildren<BoxCollider2D>(true);
-                        if (col == null || !engine.engineOn.Value)
-                            continue;
-
-                        float top = col.offset.y + (col.size.y / 2f);
-                        float bottom = col.offset.y - (col.size.y / 2f);
-                        float left = col.offset.x - (col.size.x / 2f);
-                        float right = col.offset.x + (col.size.x /2f);
-                        
-                        Vector2 topLeft = col.transform.TransformPoint(new Vector2(left, top));
-                        Vector2 topRight = col.transform.TransformPoint(new Vector2(right, top));
-                        Vector2 btmLeft = col.transform.TransformPoint(new Vector2(left, bottom));
-                        Vector2 btmRight = col.transform.TransformPoint(new Vector2(right, bottom));
-
-                        GLDrawer.DrawLine(topLeft, topRight, color, 0.1f);
-                        GLDrawer.DrawLine(btmRight, topRight, color, 0.1f);
-                        GLDrawer.DrawLine(btmRight, btmLeft, color, 0.1f);
-                        GLDrawer.DrawLine(topLeft, btmLeft, color, 0.1f);
-                    }
-                }
                 );
+            }
+            else
+            {
+                VisualsManager.Remove(Name);
             }
         }
     }
