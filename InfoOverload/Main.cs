@@ -17,7 +17,7 @@ namespace InfoOverload
         public override string DisplayName => "FSI's Info Overload";
         public override string Author => "Fusion Space Industries";
         public override string MinimumGameVersionNecessary => "1.5.10.2";
-        public override string ModVersion => "2.2";
+        public override string ModVersion => "2.3";
         public override string Description => "Visualises colliders, ranges and other invisible/technical stuff.\nProgrammed by: Astro The Rabbit, VerdiX";
         public override string IconLink => "https://i.imgur.com/D6heH5y.png";
         public override Dictionary<string, string> Dependencies => new Dictionary<string, string>
@@ -31,7 +31,7 @@ namespace InfoOverload
         public Dictionary<string, FilePath> UpdatableFiles => new Dictionary<string, FilePath>()
         {
             {
-                "https://github.com/pixelgaming579/FSI-Info-Overload-Mod-SFS/releases/latest/download/InfoOverload.dll",
+                "https://github.com/AstroTheRabbit/FSI-Info-Overload-Mod-SFS/releases/latest/download/InfoOverload.dll",
                 new FolderPath(ModFolder).ExtendToFile("InfoOverload.dll")
             }
         };
