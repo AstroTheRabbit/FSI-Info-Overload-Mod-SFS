@@ -29,7 +29,7 @@ namespace InfoOverload.UI
 
         private static (string, Func<Transform, GameObject>) Create<T>(string title, Dictionary<string, T> holders) where T: SettingsHolder
         {
-            Func<Transform, GameObject> func = (Transform parent) =>
+            GameObject Create(Transform parent)
             {
                 Vector2Int size = ConfigurationMenu.ContentSize;
                 Window window = Builder.CreateWindow
@@ -50,7 +50,7 @@ namespace InfoOverload.UI
                 window.EnableScrolling(LayoutType.Vertical);
 
                 int inner_width = size.x - 10;
-                int setting_width = inner_width - 10;
+                int setting_width = inner_width - 20;
                 int setting_height = 50;
 
                 foreach (KeyValuePair<string, T> kvp in holders)
@@ -61,7 +61,7 @@ namespace InfoOverload.UI
                     (
                         LayoutType.Vertical,
                         spacing: 10,
-                        padding: new RectOffset(5, 5, 5, 5)
+                        padding: new RectOffset(10, 10, 5, 5)
                     );
 
                     Builder.CreateToggleWithLabel
@@ -83,8 +83,8 @@ namespace InfoOverload.UI
                 }
 
                 return window.gameObject;
-            };
-            return (title, func);
+            }
+            return (title, Create);
         }
 
         private static void Create_Setting(Container container, int width, int height, string name, SettingBase setting)
@@ -94,15 +94,15 @@ namespace InfoOverload.UI
             (
                 LayoutType.Horizontal,
                 spacing: 5,
-                padding: new RectOffset(5, 5, 5, 0)
+                padding: new RectOffset(15, 5, 5, 0)
             );
-            int inner_width = (width - 20) / 3;
+            int inner_width = (width - 30) / 5;
             int inner_height = height - 5;
-            Label label = Builder.CreateLabel(inner, inner_width, inner_height, text: name);
+            Label label = Builder.CreateLabel(inner, 2 * inner_width, inner_height, text: name);
             label.TextAlignment = TextAlignmentOptions.Left;
             label.AutoFontResize = false;
             label.FontSize = 20;
-            setting.CreateUI(inner, 2 * inner_width, inner_height);
+            setting.CreateUI(inner, 3 * inner_width, inner_height);
         }
     }
 }
