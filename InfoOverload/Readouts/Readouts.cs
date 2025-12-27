@@ -52,13 +52,14 @@ namespace InfoOverload.Readouts
                 info += $"\n• Global rotation: {NormaliseAngle(rocket.rb2d.rotation).ToString(4, true)}°";
                 info += $"\n• Angular velocity: {rocket.rb2d.angularVelocity.ToString(4, true)}°/s";
 
-                if (loc.TerrainHeight < 2000.0 || loc.Height < 500.0)
+                double terrainHeight = loc.GetTerrainHeight(false);
+                if (terrainHeight < 2000.0 || loc.Height < 500.0)
                 {
                     info += $"\n• Other height: {loc.Height.ToDistanceString()}";
                 }
                 else
                 {
-                    info += $"\n• Other height (Terrain): {loc.TerrainHeight.ToDistanceString()}";
+                    info += $"\n• Other height (Terrain): {terrainHeight.ToDistanceString()}";
                 }
                 return info;
             }

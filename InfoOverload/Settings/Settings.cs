@@ -20,10 +20,10 @@ namespace InfoOverload.Settings
         public static Dictionary<string, ReadoutSettings> CurrentReadouts => SceneUtil.GetCurrent(WorldReadouts, BuildReadouts);
         public static Dictionary<string, FunctionSettings> CurrentFunctions => SceneUtil.GetCurrent(WorldFunctions, BuildFunctions);
 
-        public static FilePath FilePath_WorldReadouts => Main.Folder.ExtendToFile("world-readouts.txt");
-        public static FilePath FilePath_BuildReadouts => Main.Folder.ExtendToFile("build-readouts.txt");
-        public static FilePath FilePath_WorldFunctions => Main.Folder.ExtendToFile("world-functions.txt");
-        public static FilePath FilePath_BuildFunctions => Main.Folder.ExtendToFile("build-functions.txt");
+        public static IFile FilePath_WorldReadouts => Main.Folder.GetFile("world-readouts.txt");
+        public static IFile FilePath_BuildReadouts => Main.Folder.GetFile("build-readouts.txt");
+        public static IFile FilePath_WorldFunctions => Main.Folder.GetFile("world-functions.txt");
+        public static IFile FilePath_BuildFunctions => Main.Folder.GetFile("build-functions.txt");
 
         public static void Init()
         {
@@ -47,9 +47,9 @@ namespace InfoOverload.Settings
             Load(WorldFunctions, FilePath_WorldFunctions);
             Load(BuildFunctions, FilePath_BuildFunctions);
 
-            void Load<T>(Dictionary<string, T> settings, FilePath path)
+            void Load<T>(Dictionary<string, T> settings, IFile path)
             {
-                if (!path.FileExists())
+                if (!path.Exists())
                     // * The settings file doesn't exist, so we should keep the default settings.
                     return;
 
@@ -137,7 +137,7 @@ namespace InfoOverload.Settings
     {
         public static WindowSettings Instance { get; private set; }
 
-        public static FilePath FilePath => Main.Folder.ExtendToFile("window-settings.txt");
+        public static IFile FilePath => Main.Folder.GetFile("window-settings.txt");
         public class WindowState
         {
             public int Width { get; set; }
@@ -168,7 +168,7 @@ namespace InfoOverload.Settings
 
         public static void Load()
         {
-            if (FilePath.FileExists())
+            if (FilePath.Exists())
             {
                 try
                 {

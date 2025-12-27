@@ -1,8 +1,9 @@
 using System.Collections.Generic;
-using SFS.Parts;
-using SFS.Parts.Modules;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using SFS;
+using SFS.Parts;
+using SFS.Parts.Modules;
 using static SFS.Builds.BuildGrid;
 
 namespace InfoOverload

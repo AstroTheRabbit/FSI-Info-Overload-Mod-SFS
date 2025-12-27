@@ -7,17 +7,17 @@ using InfoOverload.UI;
 
 namespace InfoOverload
 {
-    public class Main : Mod, IUpdatable
+    public class Main : Mod // ! , IUpdatable
     {
         private static Main main;
         public const string modNameID = "fsi-info-overload";
-        public static FolderPath Folder => new FolderPath(main.ModFolder);
+        public static DefaultFolder Folder => new DefaultFolder(main.ModFolder);
 
         public override string ModNameID => modNameID;
         public override string DisplayName => "FSI's Info Overload";
         public override string Author => "Fusion Space Industries";
-        public override string MinimumGameVersionNecessary => "1.5.10.2";
-        public override string ModVersion => "2.4";
+        public override string MinimumGameVersionNecessary => "1.6.0";
+        public override string ModVersion => "2.5";
         public override string Description => "Visualises colliders, ranges and other invisible/technical stuff.\nProgrammed by: Astro The Rabbit, VerdiX";
         public override string IconLink => "https://i.imgur.com/D6heH5y.png";
         public override Dictionary<string, string> Dependencies => new Dictionary<string, string>
