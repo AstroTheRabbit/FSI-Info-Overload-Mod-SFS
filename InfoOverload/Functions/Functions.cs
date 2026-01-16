@@ -685,7 +685,7 @@ namespace InfoOverload.Functions
                                 Location location = rocket.location.Value;
                                 if (location.velocity.Mag_MoreThan(0.001))
                                 {
-                                    float angle = (float)location.velocity.AngleRadians - (Mathf.PI / 2f);
+                                    float angle = (float) location.velocity.AngleRadians - (Mathf.PI / 2f);
                                     Matrix2x2 rotate = Matrix2x2.Angle(-angle);
                                     Matrix2x2 localToWorld = Matrix2x2.Angle(angle);
 
@@ -695,7 +695,7 @@ namespace InfoOverload.Functions
                                     (float drag, Vector2 centerOfDrag) = Traverse
                                         .Create<AeroModule>()
                                         .Method("CalculateDragForce", exposedSurfaces)
-                                        .GetValue<(float drag, Vector2 centerOfDrag)>();
+                                        .GetValue<(float, Vector2)>();
                                     Vector2 centerOfDragWorld = localToWorld * centerOfDrag;
                                     centerOfDragWorld = Vector2.Lerp(rocket.rb2d.worldCenterOfMass, centerOfDragWorld, 0.2f);
 
@@ -710,8 +710,8 @@ namespace InfoOverload.Functions
                                         {
                                             if (parachuteModule.targetState.Value - 1f < 0.000001f || parachuteModule.targetState.Value - 2f < 0.000001f)
                                             {
-                                                float num = (float)WorldView.ToGlobalVelocity(rocket.rb2d.GetPointVelocity(parachuteModule.parachute.position)).sqrMagnitude * parachuteModule.drag.Evaluate(parachuteModule.state.Value);
-                                                centerOfDragWorld = (centerOfDragWorld * force + (Vector2)parachuteModule.parachute.position * num) / (force + num);
+                                                float num = (float) WorldView.ToGlobalVelocity(rocket.rb2d.GetPointVelocity(parachuteModule.parachute.position)).sqrMagnitude * parachuteModule.drag.Evaluate(parachuteModule.state.Value);
+                                                centerOfDragWorld = (centerOfDragWorld * force + (Vector2) parachuteModule.parachute.position * num) / (force + num);
                                                 force += num;
                                             }
                                         }

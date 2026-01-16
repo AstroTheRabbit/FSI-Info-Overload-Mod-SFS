@@ -32,10 +32,10 @@ namespace InfoOverload.Settings
             }
         }
 
-        internal override Dictionary<string, SettingBase> Settings => settings;
         [JsonProperty("Settings")]
         [JsonConverter(typeof(SettingsDictionary))]
         private readonly Dictionary<string, SettingBase> settings = new Dictionary<string, SettingBase>();
+        internal override Dictionary<string, SettingBase> Settings => settings;
 
         public void Register<T>(string name, SettingBase<T> defaultValue)
         {

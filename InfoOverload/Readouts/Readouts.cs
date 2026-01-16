@@ -363,4 +363,98 @@ namespace InfoOverload.Readouts
                 return null;
         }
     }
+
+    public class ResourceCounts : Readout
+    {
+        public override string Name => "Resource Counts";
+
+        private struct ResourceCount
+        {
+            public float Amount { get; set; }
+            public float Capacity { get; set; }
+
+            public ResourceCount(ResourceModule rm)
+            {
+                Amount = (float) rm.ResourceAmount;
+                Capacity = (float) rm.TotalResourceCapacity;
+            }
+
+            public ResourceCount(BoosterModule bm)
+            {
+                Amount = bm.wetMass.Value;
+                Capacity = bm.GetProperty<float>("FuelMass");
+            }
+
+            private ResourceCount(float amount, float capacity)
+            {
+                Amount = amount;
+                Capacity = capacity;
+            }
+
+            public static ResourceCount operator +(ResourceCount a, ResourceCount b)
+            {
+                return new ResourceCount
+                (
+                    a.Amount + b.Amount,
+                    a.Capacity + b.Capacity
+                );
+            }
+        }
+
+        public override string GetText()
+        {
+            string info = "Resource Counts:";
+
+            PartHolder parts;
+            if (BuildManager.main != null)
+                parts = BuildManager.main.buildGrid.activeGrid.partsHolder;
+            else if (PlayerController.main.player.Value is Rocket rocket)
+                parts = rocket.partHolder;
+            else
+                return null;
+
+            BoosterModule[] boosters = parts.GetModules<BoosterModule>();
+            ResourceModule[] resources = parts.GetModules<ResourceModule>();
+
+            Dictionary<ResourceType, ResourceCount> counts = new Dictionary<ResourceType, ResourceCount>();
+            foreach (ResourceModule rm in resources)
+            {
+                ResourceType rt = rm.resourceType;
+                ResourceCount rc = new ResourceCount(rm);
+                if (counts.ContainsKey(rt))
+                    counts[rt] += rc;
+                else
+                    counts[rt] = rc;
+            }
+
+            foreach (BoosterModule bm in boosters)
+            {
+                ResourceType rt = bm.resourceType;
+                ResourceCount rc = new ResourceCount(bm);
+                if (counts.ContainsKey(rt))
+                    counts[rt] += rc;
+                else
+                    counts[rt] = rc;
+            }
+
+            if (counts.Count == 0)
+                return null;
+
+            List<(ResourceType, ResourceCount)> sorted = counts
+                .Select(kvp => (kvp.Key, kvp.Value))
+                .OrderBy(kvp => kvp.Key)
+                .ToList();
+
+            foreach ((ResourceType type, ResourceCount count) in sorted)
+            {
+                string name = type.displayName.Field;
+                string unit = type.resourceUnit.Field;
+                string amount = count.Amount.ToString(3, true);
+                string capacity = count.Capacity.ToString(3, true);
+                info += $"\n• {name}: {amount}{unit} / {capacity}{unit}";
+            }
+
+            return info;
+        }
+    }
 }

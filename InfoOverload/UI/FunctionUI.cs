@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UITools;
@@ -6,7 +7,6 @@ using ModLoader.Helpers;
 using InfoOverload.Settings;
 using InfoOverload.Functions;
 using LayoutType = SFS.UI.ModGUI.Type;
-using System.Linq;
 
 namespace InfoOverload.UI
 {
@@ -74,7 +74,7 @@ namespace InfoOverload.UI
         {
             buttons.Clear();
             if (holder != null)
-                GameObject.Destroy(holder);
+                Object.Destroy(holder);
         }
     }
 }

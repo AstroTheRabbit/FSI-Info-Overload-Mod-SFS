@@ -15,6 +15,7 @@ namespace InfoOverload.Readouts
             new PlanetInfo(),
             new AtmoInfo(),
             new PartCount(),
+            new ResourceCounts(),
             new MiscInfo(),
         };
 
@@ -24,6 +25,7 @@ namespace InfoOverload.Readouts
             new BuildInfo(),
             new SelectedPartsInfo(),
             new PartCount(),
+            new ResourceCounts(),
             new MiscInfo(),
         };
 

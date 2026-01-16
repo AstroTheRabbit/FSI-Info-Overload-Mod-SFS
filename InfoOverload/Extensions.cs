@@ -5,11 +5,17 @@ using SFS;
 using SFS.Parts;
 using SFS.Parts.Modules;
 using static SFS.Builds.BuildGrid;
+using HarmonyLib;
 
 namespace InfoOverload
 {
     public static class Extensions
     {
+        public static F GetProperty<F>(this object obj, string property)
+        {
+            return (F) AccessTools.Property(obj.GetType(), property).GetValue(obj);
+        }
+
         public static Vector2 GetDimensions(this IEnumerable<Part> parts)
         {
             Vector2 lowest = Vector2.positiveInfinity;
