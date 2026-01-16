@@ -20,7 +20,7 @@ namespace InfoOverload.Readouts
 
         protected override void RegisterSettings()
         {
-            Settings.Register(ACCELERATION_INTERVAL, new FloatSetting(0.25f, FloatSetting.IsPositive));
+            Settings.Register(ACCELERATION_INTERVAL, new FloatSetting(0.25f, FloatSetting.IsPositive()));
         }
 
         Rocket rocket = null;
@@ -268,8 +268,8 @@ namespace InfoOverload.Readouts
 
         protected override void RegisterSettings()
         {
-            Settings.Register(NORMAL_INTERVAL, new FloatSetting(0.5f, FloatSetting.IsPositive));
-            Settings.Register(PHYSICS_INTERVAL, new FloatSetting(0.5f, FloatSetting.IsPositive));
+            Settings.Register(NORMAL_INTERVAL, new FloatSetting(0.5f, FloatSetting.IsPositive()));
+            Settings.Register(PHYSICS_INTERVAL, new FloatSetting(0.5f, FloatSetting.IsPositive()));
         }
 
         private int count_normal = 0;
@@ -368,6 +368,15 @@ namespace InfoOverload.Readouts
     {
         public override string Name => "Resource Counts";
 
+        const string SHOW_PERCENTAGES = "Show Percentages";
+        const string DECIMALS = "Decimals";
+
+        protected override void RegisterSettings()
+        {
+            Settings.Register(SHOW_PERCENTAGES, new BoolSetting(false));
+            Settings.Register(DECIMALS, new IntSetting(3, IntSetting.InRangeInclusive(0, 5)));
+        }
+
         private struct ResourceCount
         {
             public float Amount { get; set; }
@@ -381,8 +390,9 @@ namespace InfoOverload.Readouts
 
             public ResourceCount(BoosterModule bm)
             {
-                Amount = bm.wetMass.Value;
-                Capacity = bm.GetProperty<float>("FuelMass");
+                float fuelMass = bm.GetProperty<float>("FuelMass");
+                Amount = fuelMass * bm.fuelPercent.Value;
+                Capacity = fuelMass;
             }
 
             private ResourceCount(float amount, float capacity)
@@ -442,16 +452,25 @@ namespace InfoOverload.Readouts
 
             List<(ResourceType, ResourceCount)> sorted = counts
                 .Select(kvp => (kvp.Key, kvp.Value))
-                .OrderBy(kvp => kvp.Key)
+                .OrderBy(kvp => kvp.Key.resourceMass)
                 .ToList();
 
             foreach ((ResourceType type, ResourceCount count) in sorted)
             {
                 string name = type.displayName.Field;
-                string unit = type.resourceUnit.Field;
-                string amount = count.Amount.ToString(3, true);
-                string capacity = count.Capacity.ToString(3, true);
-                info += $"\n• {name}: {amount}{unit} / {capacity}{unit}";
+                int decimals = Settings.Get<int>(DECIMALS);
+                if (Settings.Get<bool>(SHOW_PERCENTAGES))
+                {
+                    string percentage = (100f * count.Amount / count.Capacity).ToString(decimals, true);
+                    info += $"\n• {name} : {percentage}%";
+                }
+                else
+                {
+                    string unit = type.resourceUnit.Field;
+                    string amount = count.Amount.ToString(decimals, true);
+                    string capacity = count.Capacity.ToString(decimals, true);
+                    info += $"\n• {name}: {amount}{unit} / {capacity}{unit}";
+                }
             }
 
             return info;

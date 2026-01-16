@@ -34,7 +34,7 @@ namespace InfoOverload.Settings
             this.filter = filter;
         }
 
-        public static bool IsPositive(float input) => input > 0.01;
+        public static Func<float, bool> IsPositive() => (float input) => input > 0.01;
 
         public override void CreateUI(Container container, int width, int height)
         {
@@ -57,6 +57,8 @@ namespace InfoOverload.Settings
             Value = defaultValue;
             this.filter = filter;
         }
+
+        public static Func<int, bool> InRangeInclusive(int min, int max) => (int input) => input >= min && input <= max;
 
         public override void CreateUI(Container container, int width, int height)
         {

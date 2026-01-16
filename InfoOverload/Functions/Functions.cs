@@ -74,7 +74,7 @@ namespace InfoOverload.Functions
             Settings.Register(POSITIVE_COLOR, new ColorSetting(Color.green));
             Settings.Register(NEGATIVE_COLOR, new ColorSetting(Color.red));
             Settings.Register(INACTIVE_COLOR, new ColorSetting(Color.magenta));
-            Settings.Register(RANGE_CIRCLE_DETAIL, new FloatSetting(50f, FloatSetting.IsPositive));
+            Settings.Register(RANGE_CIRCLE_DETAIL, new FloatSetting(50f, FloatSetting.IsPositive()));
             Settings.Register(FORCE_LINE_SCALE, new FloatSetting(1f));
         }
 
@@ -148,7 +148,7 @@ namespace InfoOverload.Functions
 
         protected override void RegisterSettings()
         {
-            Settings.Register(DOT_RADIUS, new FloatSetting(0.25f, FloatSetting.IsPositive));
+            Settings.Register(DOT_RADIUS, new FloatSetting(0.25f, FloatSetting.IsPositive()));
             Settings.Register(COM_COLOR, new ColorSetting(Color.yellow));
             Settings.Register(SELECTED_COM_COLOR, new ColorSetting(Color.green));
             Settings.Register(SHOW_FORCE_OF_GRAVITY, new BoolSetting(false));
