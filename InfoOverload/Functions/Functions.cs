@@ -693,38 +693,13 @@ namespace InfoOverload.Functions
                                     Matrix2x2 rotate = Matrix2x2.Angle(-angle);
                                     Matrix2x2 localToWorld = Matrix2x2.Angle(angle);
 
-                                    var surfaces = Aero_Rocket.GetDragSurfaces(rocket.partHolder, rotate);
-                                    var exposedSurfaces = AeroModule.GetExposedSurfaces(surfaces);
-
-                                    (float drag, Vector2 centerOfDrag) = Traverse
-                                        .Create<AeroModule>()
-                                        .Method("CalculateDragForce", exposedSurfaces)
-                                        .GetValue<(float, Vector2)>();
-                                    Vector2 centerOfDragWorld = localToWorld * centerOfDrag;
-                                    centerOfDragWorld = Vector2.Lerp(rocket.rb2d.worldCenterOfMass, centerOfDragWorld, 0.2f);
-
-                                    float density = (float)location.planet.GetAtmosphericDensity(location.Height);
-                                    float force = drag * 1.5f * (float)location.velocity.sqrMagnitude;
-                                    Vector2 forceVector = -location.velocity.ToVector2.normalized * (force * density);
-
-                                    if (Settings.Get<bool>(INCLUDE_PARACHUTE_DRAG))
-                                    {
-                                        ParachuteModule[] modules = rocket.partHolder.GetModules<ParachuteModule>();
-                                        foreach (ParachuteModule parachuteModule in modules)
-                                        {
-                                            if (parachuteModule.targetState.Value - 1f < 0.000001f || parachuteModule.targetState.Value - 2f < 0.000001f)
-                                            {
-                                                float num = (float) WorldView.ToGlobalVelocity(rocket.rb2d.GetPointVelocity(parachuteModule.parachute.position)).sqrMagnitude * parachuteModule.drag.Evaluate(parachuteModule.state.Value);
-                                                centerOfDragWorld = (centerOfDragWorld * force + (Vector2) parachuteModule.parachute.position * num) / (force + num);
-                                                force += num;
-                                            }
-                                        }
-                                    }
+                                    List<Surface> surfaces = Aero_Rocket.GetDragSurfaces(rocket.partHolder, rotate);
+                                    List<Surface> exposedSurfaces = AeroModule.GetExposedSurfaces(surfaces);
                                     
                                     if (Settings.Get<bool>(SHOW_ALL_SURFACES))
                                     {
                                         Color color = Settings.Get<Color>(ALL_SURFACES_COLOR);
-                                        foreach (var surface in surfaces)
+                                        foreach (Surface surface in surfaces)
                                         {
                                             GLDrawer.DrawLine(localToWorld * surface.line.start, localToWorld * surface.line.end, color, 0.1f);
                                         }
@@ -732,16 +707,42 @@ namespace InfoOverload.Functions
                                     if (Settings.Get<bool>(SHOW_EXPOSED_SURFACES))
                                     {
                                         Color color = Settings.Get<Color>(EXPOSED_SURFACES_COLOR);
-                                        foreach (var surface in exposedSurfaces)
+                                        foreach (Surface surface in exposedSurfaces)
                                         {
                                             GLDrawer.DrawLine(localToWorld * surface.line.start, localToWorld * surface.line.end, color, 0.1f);
                                         }
                                     }
                                     if (Settings.Get<bool>(SHOW_DRAG_FORCE_LINE))
                                     {
+                                        // TODO: Maybe make this into a reverse patch instead?
+                                        (float drag, Vector2 centerOfDrag) = Traverse
+                                            .Create<AeroModule>()
+                                            .Method("CalculateDragForce", exposedSurfaces)
+                                            .GetValue<(float, Vector2)>();
+                                        Vector2 centerOfDragWorld = localToWorld * centerOfDrag;
+                                        centerOfDragWorld = Vector2.Lerp(rocket.rb2d.worldCenterOfMass, centerOfDragWorld, 0.2f);
+
+                                        float density = (float) location.planet.GetAtmosphericDensity(location.Height);
+                                        float force = drag * 1.5f * (float) location.velocity.sqrMagnitude;
+
+                                        if (Settings.Get<bool>(INCLUDE_PARACHUTE_DRAG))
+                                        {
+                                            ParachuteModule[] modules = rocket.partHolder.GetModules<ParachuteModule>();
+                                            foreach (ParachuteModule parachuteModule in modules)
+                                            {
+                                                if (parachuteModule.targetState.Value - 1f < 0.000001f || parachuteModule.targetState.Value - 2f < 0.000001f)
+                                                {
+                                                    float parachuteDrag = (float) WorldView.ToGlobalVelocity(rocket.rb2d.GetPointVelocity(parachuteModule.parachute.position)).sqrMagnitude * parachuteModule.drag.Evaluate(parachuteModule.state.Value);
+                                                    centerOfDragWorld = (centerOfDragWorld * force + (Vector2) parachuteModule.parachute.position * parachuteDrag) / (force + parachuteDrag);
+                                                    force += parachuteDrag;
+                                                }
+                                            }
+                                        }
+                                        Vector2 vector = -location.velocity.ToVector2.normalized * (force * density) / rocket.mass.GetMass();
+                                        
                                         Color color = Settings.Get<Color>(DRAG_FORCE_LINE_COLOR);
-                                        GLDrawer.DrawLine(centerOfDragWorld, (Settings.Get<float>(DRAG_FORCE_LINE_SCALE) * forceVector) + centerOfDragWorld, color, 0.1f);
                                         GLDrawer.DrawCircle(centerOfDragWorld, 0.25f, 20, color);
+                                        GLDrawer.DrawLine(centerOfDragWorld, (Settings.Get<float>(DRAG_FORCE_LINE_SCALE) * vector) + centerOfDragWorld, color, 0.1f);
                                     }
                                 }
                             }
