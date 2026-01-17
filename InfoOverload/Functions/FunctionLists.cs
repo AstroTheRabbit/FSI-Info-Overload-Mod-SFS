@@ -15,6 +15,7 @@ namespace InfoOverload.Functions
             new ToggleInteriorView(),
             new DisplayCoM(),
             new DisplayCoT(),
+            new WaterForces(),
             new EngineHeat(),
             new AeroOverlay(),
             new DockingPorts(),

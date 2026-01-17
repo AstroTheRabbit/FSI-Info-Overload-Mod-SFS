@@ -7,10 +7,12 @@ using SFS;
 using SFS.Parts;
 using SFS.World;
 using SFS.Builds;
+using SFS.WorldBase;
 using SFS.World.Drag;
 using SFS.World.Terrain;
 using SFS.Parts.Modules;
 using InfoOverload.Settings;
+using System;
 
 namespace InfoOverload.Functions
 {
@@ -568,10 +570,12 @@ namespace InfoOverload.Functions
     {
         public override string Name => "Terrain Colliders";
         const string COLLIDER_COLOR = "Collider Color";
+
         protected override void RegisterSettings()
         {
             Settings.Register(COLLIDER_COLOR, new ColorSetting(Color.white));
         }
+
         public override void OnToggle()
         {
             if (Button.Selected = !Button.Selected)
@@ -806,6 +810,85 @@ namespace InfoOverload.Functions
                             GLDrawer.DrawLine(btmRight, topRight, color, 0.1f);
                             GLDrawer.DrawLine(btmRight, btmLeft, color, 0.1f);
                             GLDrawer.DrawLine(topLeft, btmLeft, color, 0.1f);
+                        }
+                    }
+                );
+            }
+            else
+            {
+                VisualsManager.Remove(Name);
+            }
+        }
+    }
+
+    public class WaterForces : Function
+    {
+        public override string Name => "Water Forces";
+        const string SHOW_NET_FORCE = "Show Net Force";
+        const string DOT_RADIUS = "Dot Radius";
+        const string BUOYANT_SCALE = "Buoyant Force Scale";
+        const string BUOYANT_COLOR = "Buoyant Force Color";
+        const string DRAG_SCALE = "Drag Force Scale";
+        const string DRAG_COLOR = "Drag Force Color";
+
+        protected override void RegisterSettings()
+        {
+            Settings.Register(SHOW_NET_FORCE, new BoolSetting(true));
+            Settings.Register(DOT_RADIUS, new FloatSetting(0.25f, FloatSetting.IsPositive()));
+            Settings.Register(BUOYANT_SCALE, new FloatSetting(1f));
+            Settings.Register(DRAG_SCALE, new FloatSetting(1f));
+            Settings.Register(BUOYANT_COLOR, new ColorSetting(Color.aquamarine));
+            Settings.Register(DRAG_COLOR, new ColorSetting(Color.lightSeaGreen));
+        }
+        public override void OnToggle()
+        {
+            if (Button.Selected = !Button.Selected)
+            {
+                VisualsManager.Add
+                (
+                    Name,
+                    delegate
+                    {
+                        if (PlayerController.main.player.Value is Rocket rocket)
+                        {
+                            List<WaterForceInfo> forces = WaterCalculations.CalculateWaterForces(rocket);
+                            float radius = Settings.Get<float>(DOT_RADIUS);
+                            float buoyantScale = Settings.Get<float>(BUOYANT_SCALE);
+                            float dragScale = Settings.Get<float>(DRAG_SCALE);
+                            Color buoyantColor = Settings.Get<Color>(BUOYANT_COLOR);
+                            Color dragColor = Settings.Get<Color>(DRAG_COLOR);
+
+                            Debug.Log(forces.Count);
+
+                            if (Settings.Get<bool>(SHOW_NET_FORCE) && forces.Count > 0)
+                            {
+                                Vector2 buoyantPos = forces.Select(wfi => wfi.WorldPosition * wfi.BuoyantForce.magnitude).Sum();
+                                Vector2 dragPos = forces.Select(wfi => wfi.WorldPosition * wfi.DragForce.magnitude).Sum();
+                                buoyantPos /= forces.Select(wfi => wfi.BuoyantForce.magnitude).Sum();
+                                dragPos /= forces.Select(wfi => wfi.DragForce.magnitude).Sum();
+                                
+                                Vector2 buoyantForce = buoyantScale * forces.Select(wfi => wfi.BuoyantForce).Sum() + buoyantPos;
+                                Vector2 dragForce = dragScale * forces.Select(wfi => wfi.DragForce).Sum() + dragPos;
+
+                                GLDrawer.DrawCircle(buoyantPos, radius, 50, buoyantColor);
+                                GLDrawer.DrawLine(buoyantPos, buoyantForce, buoyantColor, 0.1f);
+                                GLDrawer.DrawCircle(dragPos, radius, 50, dragColor);
+                                GLDrawer.DrawLine(dragPos, dragForce, dragColor, 0.1f);
+                            }
+                            else
+                            {
+                                foreach (WaterForceInfo wfi in forces)
+                                {
+                                    Vector2 worldPos = wfi.WorldPosition;
+                                    Vector2 buoyantForce = buoyantScale * wfi.BuoyantForce + worldPos;
+                                    Vector2 dragForce = dragScale * wfi.DragForce + worldPos;
+
+                                    GLDrawer.DrawCircle(worldPos, radius, 50, buoyantColor);
+                                    GLDrawer.DrawLine(worldPos, buoyantForce, buoyantColor, 0.1f);
+                                    GLDrawer.DrawCircle(worldPos, radius, 50, dragColor);
+                                    GLDrawer.DrawLine(worldPos, dragForce, dragColor, 0.1f);
+                                }
+                            }
                         }
                     }
                 );

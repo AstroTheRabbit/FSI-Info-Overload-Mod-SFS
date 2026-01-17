@@ -6,6 +6,7 @@ using SFS.Parts;
 using SFS.Parts.Modules;
 using static SFS.Builds.BuildGrid;
 using HarmonyLib;
+using System.Linq;
 
 namespace InfoOverload
 {
@@ -14,6 +15,11 @@ namespace InfoOverload
         public static F GetProperty<F>(this object obj, string property)
         {
             return (F) AccessTools.Property(obj.GetType(), property).GetValue(obj);
+        }
+
+        public static Vector2 Sum(this IEnumerable<Vector2> source)
+        {
+            return source.Aggregate((a, b) => a + b);
         }
 
         public static Vector2 GetDimensions(this IEnumerable<Part> parts)
