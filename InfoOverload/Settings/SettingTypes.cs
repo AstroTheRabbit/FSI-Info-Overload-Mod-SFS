@@ -80,11 +80,6 @@ namespace InfoOverload.Settings
             Value = defaultValue;
         }
 
-        public ColorSetting(float defaultR, float defaultG, float defaultB)
-        {
-            Value = new Color(defaultR, defaultG, defaultB);
-        }
-
         public override void CreateUI(Container container, int width, int height)
         {
             Label color_indicator = null;

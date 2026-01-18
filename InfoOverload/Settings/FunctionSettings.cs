@@ -16,8 +16,7 @@ namespace InfoOverload.Settings
             // * Function must be visible for it to be active.
             if (Active && !Visible)
             {
-                Active = false;
-                function.Button.Selected = false;
+                function.Button.Selected = Active = false;
                 function.OnToggle();
             }
             FunctionUI.CreateUI();

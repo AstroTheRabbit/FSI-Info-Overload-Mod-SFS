@@ -27,7 +27,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Selected)
+            if (Settings.Active)
             {
                 VisualsManager.Add
                 (
@@ -80,7 +80,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Selected)
+            if (Settings.Active)
             {
                 VisualsManager.Add
                 (
@@ -156,7 +156,7 @@ namespace InfoOverload.Functions
         }
         public override void OnToggle()
         {
-            if (Button.Selected)
+            if (Settings.Active)
             {
                 VisualsManager.Add
                 (
@@ -210,20 +210,22 @@ namespace InfoOverload.Functions
         }
     }
 
-    public class DisplayCoT : Function
+    public class ThrustForces : Function
     {
-        public override string Name => "Thrust Vectors";
+        public override string Name => "Thrust Forces";
+        const string ENGINE_COLOR = "Engine Color";
+        const string BOOSTER_COLOR = "Booster Color";
         const string COT_COLOR = "CoT Color";
         const string SELECTED_COT_COLOR = "Selected CoT Color";
         protected override void RegisterSettings()
         {
-            Settings.Register(COT_COLOR, new ColorSetting(1f, 0.5f, 0f));
+            Settings.Register(COT_COLOR, new ColorSetting(Color.orange));
             Settings.Register(SELECTED_COT_COLOR, new ColorSetting(Color.green));
         }
         
         public override void OnToggle()
         {
-            if (Button.Selected)
+            if (Settings.Active)
             {
                 VisualsManager.Add
                 (
@@ -352,7 +354,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Selected)
+            if (Settings.Active)
             {
                 VisualsManager.Add
                 (
@@ -420,12 +422,12 @@ namespace InfoOverload.Functions
         protected override void RegisterSettings()
         {
             Settings.Register(COLLIDER_COLOR, new ColorSetting(Color.cyan));
-            Settings.Register(TERRAIN_ONLY_COLLIDER_COLOR, new ColorSetting(0, 0.5f, 1f));
+            Settings.Register(TERRAIN_ONLY_COLLIDER_COLOR, new ColorSetting(Color.dodgerBlue));
         }
 
         public override void OnToggle()
         {
-            if (Button.Selected)
+            if (Settings.Active)
             {
                 VisualsManager.Add
                 (
@@ -576,7 +578,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Selected)
+            if (Settings.Active)
             {
                 VisualsManager.Add
                 (
@@ -620,7 +622,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            Patches.changeOutlines = Button.Selected;
+            Patches.changeOutlines = Settings.Active;
             Patches.outlinesColor = Settings.GetRef<Color>(OUTLINE_COLOR);
             Patches.outlinesWidth = Settings.GetRef<float>(OUTLINE_WIDTH);
             Patches.disableOutlines = Settings.GetRef<bool>(DISABLE_OUTLINES);
@@ -639,7 +641,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            Patches.enableFreeCam = Button.Selected;
+            Patches.enableFreeCam = Settings.Active;
             Patches.lockFreeCam = Settings.GetRef<bool>(LOCK_TO_LOAD_DISTANCE);
             // * Reset camera position when free cam is turned off.
             if (!Patches.enableFreeCam) 
@@ -667,13 +669,13 @@ namespace InfoOverload.Functions
             Settings.Register(SHOW_DRAG_FORCE_LINE, new BoolSetting(true));
             Settings.Register(DRAG_FORCE_LINE_SCALE, new FloatSetting(0.125f));
             Settings.Register(EXPOSED_SURFACES_COLOR, new ColorSetting(Color.red));
-            Settings.Register(ALL_SURFACES_COLOR, new ColorSetting(0.5f, 0, 0));
+            Settings.Register(ALL_SURFACES_COLOR, new ColorSetting(Color.darkRed));
             Settings.Register(DRAG_FORCE_LINE_COLOR, new ColorSetting(Color.red));
         }
 
         public override void OnToggle()
         {
-            if (Button.Selected)
+            if (Settings.Active)
             {
                 VisualsManager.Add
                 (
@@ -762,12 +764,12 @@ namespace InfoOverload.Functions
 
         protected override void RegisterSettings()
         {
-            Settings.Register(BORDER_COLOR, new ColorSetting(1f, 0.5f, 0f));
+            Settings.Register(BORDER_COLOR, new ColorSetting(Color.orange));
         }
 
         public override void OnToggle()
         {
-            if (Button.Selected)
+            if (Settings.Active)
             {
                 VisualsManager.Add
                 (
@@ -841,7 +843,7 @@ namespace InfoOverload.Functions
         }
         public override void OnToggle()
         {
-            if (Button.Selected)
+            if (Settings.Active)
             {
                 VisualsManager.Add
                 (

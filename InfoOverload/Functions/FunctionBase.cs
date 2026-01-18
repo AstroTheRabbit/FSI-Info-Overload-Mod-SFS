@@ -22,8 +22,7 @@ namespace InfoOverload.Functions
 
         internal void Toggle()
         {
-            Settings.Active = !Settings.Active;
-            Button.Selected = !Button.Selected;
+            Button.Selected = Settings.Active = !Settings.Active;
             OnToggle();
         }
     }

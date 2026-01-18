@@ -14,7 +14,7 @@ namespace InfoOverload.Functions
             new ChangeOutlines(),
             new ToggleInteriorView(),
             new DisplayCoM(),
-            new DisplayCoT(),
+            new ThrustForces(),
             new WaterForces(),
             new EngineHeat(),
             new AeroOverlay(),
@@ -29,7 +29,7 @@ namespace InfoOverload.Functions
         {
             new ChangeOutlines(),
             new DisplayCoM(),
-            new DisplayCoT(),
+            new ThrustForces(),
             // new EngineHeat(), // TODO: currently broken in build mode.
             new DockingPorts(),
             new DisplayPartColliders(),
