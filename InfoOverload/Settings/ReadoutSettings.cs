@@ -1,53 +1,12 @@
-using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
+using InfoOverload.UI;
 
 namespace InfoOverload.Settings
 {
     public class ReadoutSettings : SettingsHolder
     {
-        /// Is the readout visible in the UI?
-        [JsonProperty()]
-        internal override bool Visible { get; set; } = true;
-        internal override Dictionary<string, SettingBase> Settings => settings;
-        [JsonProperty("Settings")]
-        [JsonConverter(typeof(SettingsDictionary))]
-        private readonly Dictionary<string, SettingBase> settings = new Dictionary<string, SettingBase>();
-
-        public void Register<T>(string name, SettingBase<T> defaultValue)
+        protected override void OnToggleVisibility()
         {
-            if (!Settings.ContainsKey(name))
-            {
-                Settings.Add(name, defaultValue);
-            }
-            else
-            {
-                throw new ArgumentException($"ReadoutSettings: setting \"{name}\" was already registered!");
-            }    
-        }
-
-        public T Get<T>(string name)
-        {
-            return GetRef<T>(name).Value;
-        }
-
-        public SettingBase<T> GetRef<T>(string name)
-        {
-            if (Settings.TryGetValue(name, out SettingBase sb))
-            {
-                if (sb is SettingBase<T> sbt)
-                {
-                    return sbt;
-                }
-                else
-                {
-                    throw new InvalidCastException($"ReadoutSettings: setting \"{name}\" is not of type `{typeof(T).Name}`!");
-                }
-            }
-            else
-            {
-                throw new Exception($"ReadoutSettings: setting \"{name}\" is not registered!");
-            }
+            ReadoutUI.CreateUI();
         }
     }
 }

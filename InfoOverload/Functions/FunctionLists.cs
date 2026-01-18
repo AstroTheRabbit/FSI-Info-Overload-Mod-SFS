@@ -30,7 +30,7 @@ namespace InfoOverload.Functions
             new ChangeOutlines(),
             new DisplayCoM(),
             new DisplayCoT(),
-            // new EngineHeat(),
+            // new EngineHeat(), // TODO: currently broken in build mode.
             new DockingPorts(),
             new DisplayPartColliders(),
         };

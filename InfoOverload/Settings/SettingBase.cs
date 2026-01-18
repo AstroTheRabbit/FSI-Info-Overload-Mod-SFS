@@ -10,8 +10,67 @@ namespace InfoOverload.Settings
 {
     public abstract class SettingsHolder
     {
-        internal abstract bool Visible { get; set; }
-        internal abstract Dictionary<string, SettingBase> Settings { get; }
+        [JsonProperty("Settings")]
+        [JsonConverter(typeof(SettingsDictionary))]
+        private readonly Dictionary<string, SettingBase> settings = new Dictionary<string, SettingBase>();
+        
+        [JsonProperty("Visible")]
+        private bool visible = true;
+
+        [JsonIgnore]
+        public Dictionary<string, SettingBase> Settings => settings;
+
+        [JsonIgnore]
+        public bool Visible
+        {
+            get => visible;
+            set
+            {
+                if (visible != value)
+                {
+                    visible = value;
+                    OnToggleVisibility();
+                }
+            }
+        }
+
+        protected virtual void OnToggleVisibility() {}
+
+        public void Register<T>(string name, SettingBase<T> defaultValue)
+        {
+            if (!Settings.ContainsKey(name))
+            {
+                Settings.Add(name, defaultValue);
+            }
+            else
+            {
+                throw new ArgumentException($"{GetType()}: setting \"{name}\" was already registered!");
+            }    
+        }
+
+        public T Get<T>(string name)
+        {
+            return GetRef<T>(name).Value;
+        }
+
+        public SettingBase<T> GetRef<T>(string name)
+        {
+            if (Settings.TryGetValue(name, out SettingBase sb))
+            {
+                if (sb is SettingBase<T> sbt)
+                {
+                    return sbt;
+                }
+                else
+                {
+                    throw new InvalidCastException($"{GetType()}: setting \"{name}\" is not of type `{typeof(T).Name}`!");
+                }
+            }
+            else
+            {
+                throw new ArgumentException($"{GetType()}: setting \"{name}\" is not registered!");
+            }
+        }
     }
 
     public abstract class SettingBase
@@ -25,20 +84,8 @@ namespace InfoOverload.Settings
     {
         public T Value
         {
-            get
-            {
-                if (setting is T t)
-                    return t;
-                else
-                    throw new InvalidCastException($"SettingsBase<{typeof(T)}>: `value` could not be cast when getting!");
-            }
-            set
-            {
-                if (value is T t)
-                    setting = t;
-                else
-                    throw new InvalidCastException($"SettingsBase<{typeof(T)}>: `value` could not be cast when setting!");
-            }
+            get => setting is T typed ? typed : default;
+            set => setting = value;
         }
 
         internal sealed override object FromToken(JToken token)

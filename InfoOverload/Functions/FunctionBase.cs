@@ -1,7 +1,6 @@
-using HarmonyLib;
-using InfoOverload.Settings;
 using SFS.UI;
 using SFS.UI.ModGUI;
+using InfoOverload.Settings;
 using Button = SFS.UI.ModGUI.Button;
 
 namespace InfoOverload.Functions
@@ -11,15 +10,22 @@ namespace InfoOverload.Functions
         public abstract string Name { get; }
         public FunctionButton Button { get; set; }
         public FunctionSettings Settings { get; private set; }
-        
-        public void RegisterSettings(FunctionSettings settings)
-        {
-            Settings = settings;
-            RegisterSettings();
-        }
 
         protected virtual void RegisterSettings() {}
         public abstract void OnToggle();
+        
+        public void RegisterSettings(FunctionSettings settings)
+        {
+            (Settings = settings).function = this;
+            RegisterSettings();
+        }
+
+        internal void Toggle()
+        {
+            Settings.Active = !Settings.Active;
+            Button.Selected = !Button.Selected;
+            OnToggle();
+        }
     }
 
     public class FunctionButton
@@ -27,8 +33,8 @@ namespace InfoOverload.Functions
         private readonly ButtonPC button;
         public bool Selected
         {
-            get => AccessTools.FieldRefAccess<ButtonPC, bool>("selected").Invoke(button);
-            set => button.SetSelected(value);
+            get => button?.FieldRef<bool>("selected") ?? false;
+            set => button?.SetSelected(value);
         }
 
         private FunctionButton(ButtonPC button)
@@ -44,9 +50,9 @@ namespace InfoOverload.Functions
                 width,
                 height,
                 text: function.Name,
-                onClick: function.OnToggle
+                onClick: function.Toggle
             );
-            return function.Button = new FunctionButton(new Traverse(button).Field<ButtonPC>("_button").Value);
+            return function.Button = new FunctionButton(button.FieldRef<ButtonPC>("_button"));
         }
     }
 }

@@ -1,15 +1,13 @@
-using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using Newtonsoft.Json;
 using SFS.Parts;
 using SFS.World;
 using SFS.Builds;
 using SFS.Translations;
 using SFS.Parts.Modules;
-using static SFS.Base;
 using InfoOverload.Settings;
+using static SFS.Base;
 
 namespace InfoOverload.Readouts
 {

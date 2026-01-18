@@ -57,9 +57,13 @@ namespace InfoOverload.UI
 
             foreach (Function function in functions)
             {
-                FunctionButton button = FunctionButton.Create(function, window, state.Width - 10, 40);
+                buttons.Add(FunctionButton.Create(function, window, state.Width - 10, 40));
+                if (function.Settings.Active)
+                {
+                    function.Button.Selected = true;
+                    function.OnToggle();
+                }
                 minHeight -= 45;
-                buttons.Add(button);
             }
 
             if (minHeight > 0)

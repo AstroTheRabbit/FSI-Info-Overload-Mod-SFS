@@ -7,12 +7,10 @@ using SFS;
 using SFS.Parts;
 using SFS.World;
 using SFS.Builds;
-using SFS.WorldBase;
 using SFS.World.Drag;
 using SFS.World.Terrain;
 using SFS.Parts.Modules;
 using InfoOverload.Settings;
-using System;
 
 namespace InfoOverload.Functions
 {
@@ -29,7 +27,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Selected = !Button.Selected)
+            if (Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -82,7 +80,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Selected = !Button.Selected)
+            if (Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -158,7 +156,7 @@ namespace InfoOverload.Functions
         }
         public override void OnToggle()
         {
-            if (Button.Selected = !Button.Selected)
+            if (Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -225,7 +223,7 @@ namespace InfoOverload.Functions
         
         public override void OnToggle()
         {
-            if (Button.Selected = !Button.Selected)
+            if (Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -258,7 +256,7 @@ namespace InfoOverload.Functions
                         {
                             float gimbal = 0;
                             if (engine.hasGimbal && engine.Rb2d != null)
-                                gimbal = (engine.gimbal.animationElements.First(ae => ae.type == MoveData.Type.RotationZ).transform.localEulerAngles.z) * Mathf.Deg2Rad;
+                                gimbal = engine.gimbal.animationElements.First(ae => ae.type == MoveData.Type.RotationZ).transform.localEulerAngles.z * Mathf.Deg2Rad;
 
                             // ? https://youtu.be/7j5yW5QDC2U?t=203
                             Vector2 mx = new Vector2(Mathf.Cos(gimbal), Mathf.Sin(gimbal));
@@ -354,7 +352,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Selected = !Button.Selected)
+            if (Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -409,7 +407,7 @@ namespace InfoOverload.Functions
         public override void OnToggle()
         {
             InteriorManager.main.ToggleInteriorView();
-            Button.Selected = InteriorManager.main.interiorView.Value;
+            Button.Selected = Settings.Active = InteriorManager.main.interiorView.Value;
         }
     }
     
@@ -427,7 +425,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Selected = !Button.Selected)
+            if (Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -578,7 +576,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Selected = !Button.Selected)
+            if (Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -622,7 +620,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            Patches.changeOutlines = Button.Selected = !Button.Selected;
+            Patches.changeOutlines = Button.Selected;
             Patches.outlinesColor = Settings.GetRef<Color>(OUTLINE_COLOR);
             Patches.outlinesWidth = Settings.GetRef<float>(OUTLINE_WIDTH);
             Patches.disableOutlines = Settings.GetRef<bool>(DISABLE_OUTLINES);
@@ -641,7 +639,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            Patches.enableFreeCam = Button.Selected = !Button.Selected;
+            Patches.enableFreeCam = Button.Selected;
             Patches.lockFreeCam = Settings.GetRef<bool>(LOCK_TO_LOAD_DISTANCE);
             // * Reset camera position when free cam is turned off.
             if (!Patches.enableFreeCam) 
@@ -675,7 +673,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Selected = !Button.Selected)
+            if (Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -769,7 +767,7 @@ namespace InfoOverload.Functions
 
         public override void OnToggle()
         {
-            if (Button.Selected = !Button.Selected)
+            if (Button.Selected)
             {
                 VisualsManager.Add
                 (
@@ -843,7 +841,7 @@ namespace InfoOverload.Functions
         }
         public override void OnToggle()
         {
-            if (Button.Selected = !Button.Selected)
+            if (Button.Selected)
             {
                 VisualsManager.Add
                 (

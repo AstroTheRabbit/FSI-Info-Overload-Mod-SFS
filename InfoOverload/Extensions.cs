@@ -1,17 +1,22 @@
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using HarmonyLib;
 using SFS;
 using SFS.Parts;
 using SFS.Parts.Modules;
 using static SFS.Builds.BuildGrid;
-using HarmonyLib;
-using System.Linq;
 
 namespace InfoOverload
 {
     public static class Extensions
     {
+        public static ref F FieldRef<F>(this object obj, string field)
+        {
+            return ref AccessTools.FieldRefAccess<F>(obj.GetType(), field).Invoke(obj);
+        }
+
         public static F GetProperty<F>(this object obj, string property)
         {
             return (F) AccessTools.Property(obj.GetType(), property).GetValue(obj);
