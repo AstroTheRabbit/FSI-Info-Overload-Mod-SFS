@@ -213,14 +213,25 @@ namespace InfoOverload.Functions
     public class ThrustForces : Function
     {
         public override string Name => "Thrust Forces";
-        const string ENGINE_COLOR = "Engine Color";
-        const string BOOSTER_COLOR = "Booster Color";
-        const string COT_COLOR = "CoT Color";
-        const string SELECTED_COT_COLOR = "Selected CoT Color";
+        const string SHOW_INDIVIDUAL_FORCES = "Show Individual Forces";
+        const string SHOW_NET_FORCE = "Show Net Force";
+        const string DOT_RADIUS = "Dot Radius";
+        const string INDIVIDUAL_FORCE_SCALE = "Individual Force Scale";
+        const string NET_FORCE_SCALE = "Net Force Scale";
+        const string INDIVIDUAL_FORCE_COLOR = "Individual Force Color";
+        const string NET_FORCE_COLOR = "Net Force Color";
+        const string SELECTED_FORCE_COLOR = "Selected Force Color";
+
         protected override void RegisterSettings()
         {
-            Settings.Register(COT_COLOR, new ColorSetting(Color.orange));
-            Settings.Register(SELECTED_COT_COLOR, new ColorSetting(Color.green));
+            Settings.Register(SHOW_INDIVIDUAL_FORCES, new BoolSetting(true));
+            Settings.Register(SHOW_NET_FORCE, new BoolSetting(true));
+            Settings.Register(DOT_RADIUS, new FloatSetting(0.25f, FloatSetting.IsPositive()));
+            Settings.Register(INDIVIDUAL_FORCE_SCALE, new FloatSetting(-0.5f));
+            Settings.Register(NET_FORCE_SCALE, new FloatSetting(1f));
+            Settings.Register(INDIVIDUAL_FORCE_COLOR, new ColorSetting(Color.orange));
+            Settings.Register(NET_FORCE_COLOR, new ColorSetting(Color.tomato));
+            Settings.Register(SELECTED_FORCE_COLOR, new ColorSetting(Color.seaGreen));
         }
         
         public override void OnToggle()
@@ -232,101 +243,43 @@ namespace InfoOverload.Functions
                     Name,
                     delegate
                     {
-                        Color color = Settings.Get<Color>(COT_COLOR);
-                        Color selectedColor = Settings.Get<Color>(SELECTED_COT_COLOR);
-
-                        Vector2 position = Vector2.zero;
-                        Vector2 direction = Vector2.zero;
-                        float thrust = 0f;
-                        List<EngineModule> engines = new List<EngineModule>();
-                        List<BoosterModule> boosters = new List<BoosterModule>();
-                        if (SceneManager.GetActiveScene().name == "Build_PC")
+                        List<ThrustForceInfo> forces = new List<ThrustForceInfo>();
+                        if (BuildManager.main != null)
                         {
-                            engines = BuildManager.main.buildGrid.activeGrid.partsHolder.GetModules<EngineModule>().ToList();
-                            boosters = BuildManager.main.buildGrid.activeGrid.partsHolder.GetModules<BoosterModule>().ToList();
+                            forces = ThrustCalculations.CalculateThrustForces(BuildManager.main.buildGrid.activeGrid.partsHolder, 0);
                         }
-                        else if (SceneManager.GetActiveScene().name == "World_PC")
+                        else if (PlayerController.main.player.Value is Rocket rocket)
                         {
-                            if (PlayerController.main.player.Value is Rocket rocket)
+                            forces = ThrustCalculations.CalculateThrustForces(rocket.partHolder, rocket.rb2d.rotation);
+                        }
+
+                        if (forces.Count == 0)
+                        {
+                            return;
+                        }
+
+                        if (Settings.Get<bool>(SHOW_INDIVIDUAL_FORCES))
+                        {
+                            float scale = Settings.Get<float>(INDIVIDUAL_FORCE_SCALE);
+                            Color color = Settings.Get<Color>(INDIVIDUAL_FORCE_COLOR);
+
+                            foreach (ThrustForceInfo force in forces)
                             {
-                                engines = (from e in rocket.partHolder.GetModules<EngineModule>().ToList() where e.engineOn.Value select e).ToList();
-                                boosters = (from b in rocket.partHolder.GetModules<BoosterModule>().ToList() where b.enabled select b).ToList();
+                                GLDrawer.DrawLine(force.WorldPosition, force.WorldPosition + scale * force.ThrustForce, color, 0.05f);
                             }
                         }
-
-                        foreach (EngineModule engine in engines)
+                        if (Settings.Get<bool>(SHOW_NET_FORCE))
                         {
-                            float gimbal = 0;
-                            if (engine.hasGimbal && engine.Rb2d != null)
-                                gimbal = engine.gimbal.animationElements.First(ae => ae.type == MoveData.Type.RotationZ).transform.localEulerAngles.z * Mathf.Deg2Rad;
+                            float radius = Settings.Get<float>(DOT_RADIUS);
+                            float scale = Settings.Get<float>(NET_FORCE_SCALE);
+                            Color color = Settings.Get<Color>(NET_FORCE_COLOR);
 
-                            // ? https://youtu.be/7j5yW5QDC2U?t=203
-                            Vector2 mx = new Vector2(Mathf.Cos(gimbal), Mathf.Sin(gimbal));
-                            Vector2 my = new Vector2(Mathf.Sin(gimbal), -Mathf.Cos(gimbal));
-                            Vector2 thrustPosition = -(engine.thrustPosition.Value.x * mx) - (engine.thrustPosition.Value.y * my);
-                            Vector2 thrustNormal = -(engine.thrustNormal.Value.x * mx) - (engine.thrustNormal.Value.y * my);
+                            Vector2 netThrust = forces.Select(tfi => tfi.ThrustForce).Sum();
+                            Vector2 netCoT = forces.Select(tfi => tfi.WorldPosition * tfi.ThrustForce.magnitude).Sum();
+                            netCoT /= forces.Select(tfi => tfi.ThrustForce.magnitude).Sum();
 
-                            GLDrawer.DrawLine(engine.transform.TransformPoint(thrustPosition), (Vector2)engine.transform.TransformPoint(thrustPosition - (thrustNormal / 2)), color, 0.075f);
-                            position += (Vector2)engine.transform.TransformPoint(thrustPosition) * engine.thrust.Value;
-                            direction += (Vector2)engine.transform.TransformPoint(thrustPosition - thrustNormal) * engine.thrust.Value;
-                            thrust += engine.thrust.Value;
-                        }
-                        foreach (BoosterModule booster in boosters)
-                        {
-                            Vector2 thrustPosition = booster.thrustPosition.Value;
-                            Vector2 thrustNormal = booster.thrustVector.Value;
-                            GLDrawer.DrawLine(booster.transform.TransformPoint(thrustPosition), (Vector2)booster.transform.TransformPoint(thrustPosition - (thrustNormal.normalized / 2)), color, 0.075f);
-                            position += (Vector2)booster.transform.TransformPoint(thrustPosition) * thrustNormal.magnitude;
-                            direction += (Vector2)booster.transform.TransformPoint(thrustPosition - thrustNormal) * thrustNormal.magnitude;
-                            thrust += thrustNormal.magnitude;
-                        }
-
-                        position /= thrust;
-                        direction /= thrust;
-                        Vector2 directionPoint = -((direction - position).normalized * 1.5f) + position;
-                        Vector2 negativeDirectionPoint = ((direction - position).normalized / 1.5f) + position;
-                        GLDrawer.DrawCircle(position, 0.2f, 50, color);
-                        GLDrawer.DrawLine(position, directionPoint, color, 0.075f);
-                        GLDrawer.DrawLine(position, negativeDirectionPoint, color, 0.1f);
-                        
-                        if (SceneManager.GetActiveScene().name == "Build_PC")
-                        {
-                            Vector2 selectedPosition = Vector2.zero;
-                            Vector2 selectedDirection = Vector2.zero;
-                            float selectedThrust = 0f;
-                            IEnumerable<EngineModule> selectedEngines = BuildManager.main.buildGrid
-                                .GetSelectedParts()
-                                .Where(p => p.HasModule<EngineModule>())
-                                .SelectMany(p => p.GetModules<EngineModule>());
-                            IEnumerable<BoosterModule> selectedBoosters = BuildManager.main.buildGrid
-                                .GetSelectedParts()
-                                .Where(p => p.HasModule<BoosterModule>())
-                                .SelectMany(p => p.GetModules<BoosterModule>());
-                            if (selectedEngines.Count() == 0 && selectedBoosters.Count() == 0)
-                                return;
-
-                            foreach (EngineModule engine in selectedEngines)
-                            {
-                                selectedPosition += (Vector2)engine.transform.TransformPoint(engine.thrustPosition.Value) * engine.thrust.Value;
-                                selectedDirection += (Vector2)engine.transform.TransformPoint(engine.thrustPosition.Value - engine.thrustNormal.Value) * engine.thrust.Value;
-                                selectedThrust += engine.thrust.Value;
-                            }
-                            foreach (BoosterModule booster in selectedBoosters)
-                            {
-                                Vector2 thrustPosition = booster.thrustPosition.Value;
-                                Vector2 thrustNormal = booster.thrustVector.Value;
-                                selectedPosition += (Vector2)booster.transform.TransformPoint(thrustPosition) * thrustNormal.magnitude;
-                                selectedDirection += (Vector2)booster.transform.TransformPoint(thrustPosition - thrustNormal) * thrustNormal.magnitude;
-                                selectedThrust += thrustNormal.magnitude;
-                            }
-                            selectedPosition /= selectedThrust;
-                            selectedDirection /= selectedThrust;
-                            selectedDirection = (selectedDirection - selectedPosition).normalized + selectedPosition;
-                            Vector2 selectedDirectionPoint = -((selectedDirection - selectedPosition).normalized * 1.5f) + selectedPosition;
-                            Vector2 selectedNegativeDirectionPoint = ((selectedDirection - selectedPosition).normalized / 1.5f) + selectedPosition;
-                            GLDrawer.DrawCircle(selectedPosition, 0.2f, 50, selectedColor);
-                            GLDrawer.DrawLine(selectedPosition, selectedDirectionPoint, selectedColor, 0.075f);
-                            GLDrawer.DrawLine(selectedPosition, selectedNegativeDirectionPoint, selectedColor, 0.1f);
+                            GLDrawer.DrawCircle(netCoT, radius, 50, color);
+                            GLDrawer.DrawLine(netCoT, netCoT + scale * netThrust, color, 0.1f);
                         }
                     }
                 );
@@ -652,25 +605,25 @@ namespace InfoOverload.Functions
     public class AeroOverlay : Function
     {
         public override string Name => "Aero Overlay";
+        const string SHOW_DRAG_FORCE_LINE = "Show Drag Force Line";
+        const string DRAG_FORCE_LINE_SCALE = "Drag Force Line Scale";
         const string SHOW_EXPOSED_SURFACES = "Show Exposed Surfaces";
         const string SHOW_ALL_SURFACES = "Show All Surfaces";
         const string INCLUDE_PARACHUTE_DRAG = "Include Parachute Drag";
-        const string SHOW_DRAG_FORCE_LINE = "Show Drag Force Line";
-        const string DRAG_FORCE_LINE_SCALE = "Drag Force Line Scale";
+        const string DRAG_FORCE_LINE_COLOR = "Drag Force Line Color";
         const string EXPOSED_SURFACES_COLOR = "Exposed Surfaces Color";
         const string ALL_SURFACES_COLOR = "All Surfaces Color";
-        const string DRAG_FORCE_LINE_COLOR = "Drag Force Line Color";
 
         protected override void RegisterSettings()
         {
+            Settings.Register(SHOW_DRAG_FORCE_LINE, new BoolSetting(true));
+            Settings.Register(DRAG_FORCE_LINE_SCALE, new FloatSetting(1f));
             Settings.Register(SHOW_EXPOSED_SURFACES, new BoolSetting(true));
             Settings.Register(SHOW_ALL_SURFACES, new BoolSetting(false));
             Settings.Register(INCLUDE_PARACHUTE_DRAG, new BoolSetting(true));
-            Settings.Register(SHOW_DRAG_FORCE_LINE, new BoolSetting(true));
-            Settings.Register(DRAG_FORCE_LINE_SCALE, new FloatSetting(0.125f));
+            Settings.Register(DRAG_FORCE_LINE_COLOR, new ColorSetting(Color.red));
             Settings.Register(EXPOSED_SURFACES_COLOR, new ColorSetting(Color.red));
             Settings.Register(ALL_SURFACES_COLOR, new ColorSetting(Color.darkRed));
-            Settings.Register(DRAG_FORCE_LINE_COLOR, new ColorSetting(Color.red));
         }
 
         public override void OnToggle()
@@ -714,11 +667,7 @@ namespace InfoOverload.Functions
                                     }
                                     if (Settings.Get<bool>(SHOW_DRAG_FORCE_LINE))
                                     {
-                                        // TODO: Maybe make this into a reverse patch instead?
-                                        (float drag, Vector2 centerOfDrag) = Traverse
-                                            .Create<AeroModule>()
-                                            .Method("CalculateDragForce", exposedSurfaces)
-                                            .GetValue<(float, Vector2)>();
+                                        (float drag, Vector2 centerOfDrag) = Patches.AeroModule_CalculateDragForce.CalculateDragForce(exposedSurfaces);
                                         Vector2 centerOfDragWorld = localToWorld * centerOfDrag;
                                         centerOfDragWorld = Vector2.Lerp(rocket.rb2d.worldCenterOfMass, centerOfDragWorld, 0.2f);
 
