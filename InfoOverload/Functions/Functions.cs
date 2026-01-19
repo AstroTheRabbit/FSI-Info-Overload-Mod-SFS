@@ -90,17 +90,21 @@ namespace InfoOverload.Functions
                         List<DockingPortModule> ports = new List<DockingPortModule>();
                         int resolution = (int) (Settings.Get<float>(RANGE_CIRCLE_DETAIL) + 0.5f);
                         float forceScale = Settings.Get<float>(FORCE_LINE_SCALE);
-                        if (SceneManager.GetActiveScene().name == "Build_PC")
+                        if (SceneUtil.InBuild)
                         {
                             ports.AddRange(BuildManager.main.buildGrid.activeGrid.partsHolder.GetModules<DockingPortModule>());
                         }
-                        else if (SceneManager.GetActiveScene().name == "World_PC")
+                        else if (SceneUtil.InWorld)
                         {
                             foreach (Rocket rocket in GameManager.main.rockets)
                             {
                                 if (rocket.physics.loader.Loaded)
                                     ports.AddRange(rocket.partHolder.GetModules<DockingPortModule>());
                             }
+                        }
+                        else
+                        {
+                            return;
                         }
 
                         Color inactive = Settings.Get<Color>(INACTIVE_COLOR);
@@ -149,10 +153,10 @@ namespace InfoOverload.Functions
         protected override void RegisterSettings()
         {
             Settings.Register(DOT_RADIUS, new FloatSetting(0.25f, FloatSetting.IsPositive()));
-            Settings.Register(COM_COLOR, new ColorSetting(Color.yellow));
-            Settings.Register(SELECTED_COM_COLOR, new ColorSetting(Color.green));
             Settings.Register(SHOW_FORCE_OF_GRAVITY, new BoolSetting(false));
             Settings.Register(FORCE_OF_GRAVITY_SCALE, new FloatSetting(1f));
+            Settings.Register(COM_COLOR, new ColorSetting(Color.yellow));
+            Settings.Register(SELECTED_COM_COLOR, new ColorSetting(Color.green));
         }
         public override void OnToggle()
         {
@@ -163,10 +167,14 @@ namespace InfoOverload.Functions
                     Name,
                     delegate
                     {
+                        Vector2 gravity = Vector2.zero;
                         Vector2 centerOfMass = Vector2.zero;
-                        if (SceneManager.GetActiveScene().name == "Build_PC")
+                        if (SceneUtil.InBuild)
                         {
-                            float mass = 0f;
+                            Location launchpad = Base.planetLoader.spaceCenter.LaunchPadLocation;
+                            gravity = (Vector2) launchpad.planet.GetGravity(launchpad.position);
+
+                            float mass = 0;
                             foreach (Part part in BuildManager.main.buildGrid.activeGrid.partsHolder.parts)
                             {
                                 mass += part.mass.Value;
@@ -174,31 +182,40 @@ namespace InfoOverload.Functions
                             }
                             centerOfMass /= mass;
                         }
-                        else if (SceneManager.GetActiveScene().name == "World_PC")
+                        else if (SceneUtil.InWorld)
                         {
                             if (PlayerController.main.player.Value is Rocket rocket)
                             {
-                                centerOfMass = (Vector2)rocket.rb2d.transform.position + (Vector2)rocket.rb2d.transform.TransformVector(rocket.mass.GetCenterOfMass());
-                                if (Settings.Get<bool>(SHOW_FORCE_OF_GRAVITY))
-                                {
-                                    Vector2 gravity = (Vector2)rocket.physics.location.planet.Value.GetGravity(WorldView.ToGlobalPosition(rocket.physics.PhysicsObject.LocalPosition));
-                                    GLDrawer.DrawLine(centerOfMass, (gravity * Settings.Get<float>(FORCE_OF_GRAVITY_SCALE)) + centerOfMass, Settings.Get<Color>(COM_COLOR), 0.1f);
-                                }
+                                gravity = (Vector2) rocket.location.planet.Value.GetGravity(rocket.location.position.Value);
+                                centerOfMass = (Vector2) rocket.rb2d.transform.position + (Vector2) rocket.rb2d.transform.TransformVector(rocket.mass.GetCenterOfMass());
                             }
                         }
-                        GLDrawer.DrawCircle(centerOfMass, Settings.Get<float>(DOT_RADIUS), 50, Settings.Get<Color>(COM_COLOR));
 
-                        if (SceneManager.GetActiveScene().name == "Build_PC")
+                        if (gravity == Vector2.zero)
                         {
-                            Vector2 selectedCenterOfMass = Vector2.zero;
+                            return;
+                        }
+
+                        float radius = Settings.Get<float>(DOT_RADIUS);
+                        Color color = Settings.Get<Color>(COM_COLOR);
+
+                        if (Settings.Get<bool>(SHOW_FORCE_OF_GRAVITY))
+                        {
+                            GLDrawer.DrawLine(centerOfMass, centerOfMass + gravity * Settings.Get<float>(FORCE_OF_GRAVITY_SCALE), color, 0.1f);
+                        }
+                        GLDrawer.DrawCircle(centerOfMass, radius, 50, color);
+
+                        if (SceneUtil.InBuild)
+                        {
                             float selectedMass = 0f;
+                            Vector2 selectedCenterOfMass = Vector2.zero;
                             foreach (Part part in BuildManager.main.buildGrid.GetSelectedParts())
                             {
                                 selectedMass += part.mass.Value;
                                 selectedCenterOfMass += (part.Position + part.centerOfMass.Value * part.orientation) * part.mass.Value;
                             }
                             selectedCenterOfMass /= selectedMass;
-                            GLDrawer.DrawCircle(selectedCenterOfMass, Settings.Get<float>(DOT_RADIUS), 50, Settings.Get<Color>(SELECTED_COM_COLOR));
+                            GLDrawer.DrawCircle(selectedCenterOfMass, radius, 50, Settings.Get<Color>(SELECTED_COM_COLOR));
                         }
                     }
                 );
@@ -246,13 +263,12 @@ namespace InfoOverload.Functions
                         List<ThrustForceInfo> forces = new List<ThrustForceInfo>();
                         if (BuildManager.main != null)
                         {
-                            forces = ThrustCalculations.CalculateThrustForces(BuildManager.main.buildGrid.activeGrid.partsHolder, 0);
+                            forces = ThrustCalculations.CalculateThrustForces(BuildManager.main.buildGrid.activeGrid.partsHolder, 0, 1);
                         }
                         else if (PlayerController.main.player.Value is Rocket rocket)
                         {
-                            forces = ThrustCalculations.CalculateThrustForces(rocket.partHolder, rocket.rb2d.rotation);
+                            forces = ThrustCalculations.CalculateThrustForces(rocket.partHolder, rocket.rb2d.rotation, rocket.throttle.output_Throttle.Value);
                         }
-
                         if (forces.Count == 0)
                         {
                             return;
@@ -395,7 +411,7 @@ namespace InfoOverload.Functions
                         Color color = Settings.Get<Color>(COLLIDER_COLOR);
                         Color terrainOnlyColor = Settings.Get<Color>(TERRAIN_ONLY_COLLIDER_COLOR);
 
-                        if (SceneManager.GetActiveScene().name == "Build_PC")
+                        if (SceneUtil.InBuild)
                         {
                             terrainColliders.AddRange
                             (
@@ -417,7 +433,7 @@ namespace InfoOverload.Functions
                             );
                             wheels.AddRange(BuildManager.main.buildGrid.activeGrid.partsHolder.GetModules<WheelModule>());
                         }
-                        else if (SceneManager.GetActiveScene().name == "World_PC")
+                        else if (SceneUtil.InWorld)
                         {
                             foreach (Rocket rocket in GameManager.main.rockets)
                             {
@@ -433,6 +449,10 @@ namespace InfoOverload.Functions
                                 );
                                 wheels.AddRange(rocket.partHolder.GetModules<WheelModule>());
                             }
+                        }
+                        else
+                        {
+                            return;
                         }
 
                         // * Render non colliding part colliders. (They don't interact with other parts. Also rendering them first since they are a different color and less important.)
@@ -635,7 +655,7 @@ namespace InfoOverload.Functions
                     Name,
                     delegate
                     {
-                        if (SceneManager.GetActiveScene().name == "World_PC")
+                        if (SceneUtil.InWorld)
                         {
                             if (PlayerController.main.player.Value is Rocket rocket)
                             {
@@ -726,17 +746,21 @@ namespace InfoOverload.Functions
                     delegate
                     {
                         List<EngineModule> engines = new List<EngineModule>();
-                        if (SceneManager.GetActiveScene().name == "Build_PC")
+                        if (SceneUtil.InBuild)
                         {
                             engines = BuildManager.main.buildGrid.activeGrid.partsHolder.GetModules<EngineModule>().ToList();
                         }
-                        else if (SceneManager.GetActiveScene().name == "World_PC")
+                        else if (SceneUtil.InWorld)
                         {
                             foreach (Rocket rocket in GameManager.main.rockets)
                             {
                                 if (rocket.physics.loader.Loaded)
                                     engines.AddRange(rocket.partHolder.GetModules<EngineModule>().ToList());
                             }
+                        }
+                        else
+                        {
+                            return;
                         }
                         
                         Color color = Settings.Get<Color>(BORDER_COLOR);
@@ -807,8 +831,6 @@ namespace InfoOverload.Functions
                             float dragScale = Settings.Get<float>(DRAG_SCALE);
                             Color buoyantColor = Settings.Get<Color>(BUOYANT_COLOR);
                             Color dragColor = Settings.Get<Color>(DRAG_COLOR);
-
-                            Debug.Log(forces.Count);
 
                             if (Settings.Get<bool>(SHOW_NET_FORCE) && forces.Count > 0)
                             {

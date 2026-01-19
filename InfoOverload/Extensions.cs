@@ -69,6 +69,7 @@ namespace InfoOverload
         public static string CurrentName => GetCurrent("world", "build");
         public static bool InWorld => GetCurrent(true, false);
         public static bool InBuild => GetCurrent(false, true);
+        
         public static T GetCurrent<T>(T world, T build)
         {
             switch (SceneManager.GetActiveScene().name)

@@ -24,7 +24,7 @@ namespace InfoOverload.Functions
 
         private static Transform CoM = null;
 
-        internal static List<ThrustForceInfo> CalculateThrustForces(PartHolder parts, float rotation)
+        internal static List<ThrustForceInfo> CalculateThrustForces(PartHolder parts, float rotation, float throttle)
         {
             List<ThrustForceInfo> forces = new List<ThrustForceInfo>();
 
@@ -45,8 +45,8 @@ namespace InfoOverload.Functions
                 if (!engine.engineOn.Value)
                     continue;
 
-                float throttle = engine.throttle_Out.Value > 0.001f ? engine.throttle_Out.Value : 1f;
-                Vector2 vector = engine.thrustNormal.Value * (engine.thrust.Value * 9.8f * throttle);
+                float throttle_out = engine.engineOn.Value ? throttle : 0f;;
+                Vector2 vector = engine.thrustNormal.Value * (engine.thrust.Value * 9.8f * throttle_out);
                 Vector2 force = Base.worldBase.AllowsCheats ? (Vector2) engine.transform.TransformVector(vector) : engine.transform.TransformVectorUnscaled(vector);
                 Vector2 relativePoint = CoM.TransformPoint(Transform_Utility.LocalToLocalPoint(engine.transform, CoM, engine.thrustPosition.Value));
                 
