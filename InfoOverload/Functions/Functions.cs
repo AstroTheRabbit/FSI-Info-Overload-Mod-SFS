@@ -260,13 +260,16 @@ namespace InfoOverload.Functions
                     delegate
                     {
                         List<ThrustForceInfo> forces = new List<ThrustForceInfo>();
-                        if (BuildManager.main != null)
+                        if (SceneUtil.InBuild)
                         {
-                            forces = ThrustCalculations.CalculateThrustForces(BuildManager.main.buildGrid.activeGrid.partsHolder, 0, 1);
+                            forces = ThrustCalculations.CalculateThrustForces(BuildManager.main.buildGrid.activeGrid.partsHolder.GetArray(), 0, 1);
                         }
-                        else if (PlayerController.main.player.Value is Rocket rocket)
+                        else if (SceneUtil.InWorld)
                         {
-                            forces = ThrustCalculations.CalculateThrustForces(rocket.partHolder, rocket.rb2d.rotation, rocket.throttle.output_Throttle.Value);
+                            if (PlayerController.main.player.Value is Rocket rocket)
+                            {
+                                forces = ThrustCalculations.CalculateThrustForces(rocket.partHolder.GetArray(), rocket.rb2d.rotation, rocket.throttle.output_Throttle.Value);
+                            }
                         }
                         if (forces.Count == 0)
                         {
@@ -288,6 +291,25 @@ namespace InfoOverload.Functions
                             float radius = Settings.Get<float>(DOT_RADIUS);
                             float scale = Settings.Get<float>(NET_FORCE_SCALE);
                             Color color = Settings.Get<Color>(NET_FORCE_COLOR);
+
+                            Vector2 netThrust = forces.Select(tfi => tfi.ThrustForce).Sum();
+                            Vector2 netCoT = forces.Select(tfi => tfi.WorldPosition * tfi.ThrustForce.magnitude).Sum();
+                            netCoT /= forces.Select(tfi => tfi.ThrustForce.magnitude).Sum();
+
+                            GLDrawer.DrawCircle(netCoT, radius, 50, color);
+                            GLDrawer.DrawLine(netCoT, netCoT + scale * netThrust, color, 0.1f);
+                        }
+
+                        if (SceneUtil.InBuild)
+                        {
+                            forces = ThrustCalculations.CalculateThrustForces(BuildManager.main.buildGrid.GetSelectedParts(), 0, 1);
+                            if (forces.Count == 0)
+                            {
+                                return;
+                            }
+                            float radius = Settings.Get<float>(DOT_RADIUS);
+                            float scale = Settings.Get<float>(NET_FORCE_SCALE);
+                            Color color = Settings.Get<Color>(SELECTED_FORCE_COLOR);
 
                             Vector2 netThrust = forces.Select(tfi => tfi.ThrustForce).Sum();
                             Vector2 netCoT = forces.Select(tfi => tfi.WorldPosition * tfi.ThrustForce.magnitude).Sum();

@@ -27,6 +27,11 @@ namespace InfoOverload
             return source.Aggregate((a, b) => a + b);
         }
 
+        public static T[] GetModules<T>(this Part[] parts)
+        {
+            return parts.SelectMany(p => p.GetModules<T>()).ToArray();
+        }
+
         public static Vector2 GetDimensions(this IEnumerable<Part> parts)
         {
             Vector2 lowest = Vector2.positiveInfinity;

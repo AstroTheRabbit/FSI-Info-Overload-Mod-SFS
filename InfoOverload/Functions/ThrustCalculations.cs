@@ -24,9 +24,14 @@ namespace InfoOverload.Functions
 
         private static Transform CoM = null;
 
-        internal static List<ThrustForceInfo> CalculateThrustForces(PartHolder parts, float rotation, float throttle)
+        internal static List<ThrustForceInfo> CalculateThrustForces(Part[] parts, float rotation, float throttle)
         {
             List<ThrustForceInfo> forces = new List<ThrustForceInfo>();
+
+            if (parts.Length == 0)
+            {
+                return forces;
+            }
 
             if (CoM == null)
             {
@@ -34,8 +39,8 @@ namespace InfoOverload.Functions
                 CoM = new GameObject("Info Overload - Thrust Calculations CoM").transform;
             }
             CoM.rotation = Quaternion.Euler(0, 0, rotation);
-            float mass = parts.parts.Select(part => part.mass.Value).Sum();
-            CoM.position = parts.parts.Select(part => (Vector2) part.transform.TransformPoint(part.centerOfMass.Value)).Sum();
+            float mass = parts.Select(part => part.mass.Value).Sum();
+            CoM.position = parts.Select(part => (Vector2) part.transform.TransformPoint(part.centerOfMass.Value)).Sum();
 
             EngineModule[] engines = parts.GetModules<EngineModule>();
             BoosterModule[] boosters = parts.GetModules<BoosterModule>();
@@ -45,7 +50,7 @@ namespace InfoOverload.Functions
                 if (!engine.engineOn.Value)
                     continue;
 
-                float throttle_out = engine.engineOn.Value ? throttle : 0f;;
+                float throttle_out = engine.engineOn.Value ? throttle : 0f;
                 Vector2 vector = engine.thrustNormal.Value * (engine.thrust.Value * 9.8f * throttle_out);
                 Vector2 force = Base.worldBase.AllowsCheats ? (Vector2) engine.transform.TransformVector(vector) : engine.transform.TransformVectorUnscaled(vector);
                 Vector2 relativePoint = CoM.TransformPoint(Transform_Utility.LocalToLocalPoint(engine.transform, CoM, engine.thrustPosition.Value));
