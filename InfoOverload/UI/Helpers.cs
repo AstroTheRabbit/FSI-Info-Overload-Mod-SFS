@@ -1,8 +1,7 @@
 using System;
 using System.Globalization;
-using UnityEngine;
-using UnityEngine.Events;
 using SFS.UI.ModGUI;
+using UnityEngine;
 
 namespace InfoOverload.UI
 {
@@ -22,7 +21,7 @@ namespace InfoOverload.UI
 
         public static void OnFloatInputChange(this TextInput input, Action<float> onValidInput, Func<float, bool> filter = null)
         {
-            input.OnChange += (string s) =>
+            input.OnChange += s =>
             {
                 if (s.TryParseFloat(out float val))
                 {
@@ -39,7 +38,7 @@ namespace InfoOverload.UI
 
         public static void OnIntInputChange(this TextInput input, Action<int> onValidInput, Func<int, bool> filter = null)
         {
-            input.OnChange += (string s) =>
+            input.OnChange += s =>
             {
                 if (s.TryParseInt(out int val))
                 {

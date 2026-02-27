@@ -1,11 +1,11 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
-using SFS.World;
+using System.Linq;
 using SFS.Parts;
-using SFS.WorldBase;
 using SFS.Parts.Modules;
+using SFS.World;
+using SFS.WorldBase;
+using UnityEngine;
 
 namespace InfoOverload.Functions
 {
@@ -46,13 +46,10 @@ namespace InfoOverload.Functions
 
             Vector2 posNormalized = pos.normalized;
             Vector2 velocityOffset = WorldView.main.velocityOffset.Value;
-            double worldTime = (WorldTime.main != null) ? WorldTime.main.worldTime : 0.0;
+            double worldTime = WorldTime.main != null ? WorldTime.main.worldTime : 0.0;
             float mass = rocket.mass.GetMass();
             float waterHeight = (WorldView.ToLocalPosition(pos.normalized * planet.Radius) * worldToLocal).y;
             float gravity = SandboxSettings.main.settings.noGravity ? 0f : (float) planet.GetGravity(magnitude);
-            
-            float flipped;
-            Vector2[] verticesWorld;
 
             float GetWaveHeight(float x)
             {
@@ -68,7 +65,10 @@ namespace InfoOverload.Functions
                 float submergedArea = 0f;
                 Vector2 centerOfSubmergedArea = Vector2.zero;
 
+                float flipped;
+                Vector2[] verticesWorld;
                 PolygonCollider[] polygons = part.GetModules<PolygonCollider>();
+                
                 foreach (PolygonCollider polygonCollider in polygons)
                 {
                     if (polygonCollider.isActiveAndEnabled)
@@ -163,7 +163,7 @@ namespace InfoOverload.Functions
                 Vector2 pointVel = rocket.rb2d.GetPointVelocity(centerOfAreaWorld) + velocityOffset;
                 float pointVelMagnitude = pointVel.magnitude;
 
-                WaterForceInfo force = new WaterForceInfo()
+                WaterForceInfo force = new WaterForceInfo
                 {
                     WorldPosition = centerOfAreaWorld,
                     BuoyantForce = posNormalized * (areaPercent * part.mass.Value * gravity / part.density),
@@ -190,12 +190,12 @@ namespace InfoOverload.Functions
         private static (float area, Vector2 CoA) Calculate_SubmergedArea(Vector2 a, Vector2 b, float heightA, float heightB, float flipped)
         {
             float area = 0f;
-            Vector2 CoA = Vector2.zero;
+            Vector2 coa = Vector2.zero;
             if (a.y > 0f)
             {
                 if (b.y > 0f)
                 {
-                    return (area, CoA);
+                    return (area, coa);
                 }
                 float num17 = -a.y / (b.y - a.y);
                 a += (b - a) * num17;
@@ -213,7 +213,7 @@ namespace InfoOverload.Functions
                 float num20 = (b.x - a.x) * (0f - max) * flipped;
                 Vector2 vector10 = new Vector2((b.x + a.x) / 2f, (max + heightA + heightB) / 2f);
                 area += num20;
-                CoA += vector10 * num20;
+                coa += vector10 * num20;
             }
             float abs = Mathf.Abs(b.y - a.y);
             if (abs > 0.0001f)
@@ -221,13 +221,13 @@ namespace InfoOverload.Functions
                 float num22 = (b.x - a.x) * abs / 2f * flipped;
                 Vector2 vector11 = new Vector2
                 (
-                    Mathf.Lerp(a.x, b.x, (a.y < b.y) ? 0.333f : 0.666f),
-                    Mathf.Lerp(a.y + heightA, b.y + heightB, (a.y > b.y) ? 0.333f : 0.666f)
+                    Mathf.Lerp(a.x, b.x, a.y < b.y ? 0.333f : 0.666f),
+                    Mathf.Lerp(a.y + heightA, b.y + heightB, a.y > b.y ? 0.333f : 0.666f)
                 );
                 area += num22;
-                CoA += vector11 * num22;
+                coa += vector11 * num22;
             }
-            return (area, CoA);
+            return (area, coa);
         }
     }
 }

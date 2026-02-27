@@ -1,15 +1,15 @@
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
-using UnityEngine;
+using InfoOverload.Settings;
 using SFS;
-using SFS.Parts;
-using SFS.World;
 using SFS.Builds;
+using SFS.Parts;
+using SFS.Parts.Modules;
+using SFS.World;
 using SFS.World.Drag;
 using SFS.World.Terrain;
-using SFS.Parts.Modules;
-using InfoOverload.Settings;
+using UnityEngine;
 
 namespace InfoOverload.Functions
 {
@@ -17,11 +17,11 @@ namespace InfoOverload.Functions
     public class DespawnHitbox : Function
     {
         public override string Name => "Despawn Hitbox";
-        const string DESPAWN_HITBOX_COLOR = "Despawn Hitbox Color";
+        private const string DespawnHitboxColor = "Despawn Hitbox Color";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(DESPAWN_HITBOX_COLOR, new ColorSetting(Color.yellow));
+            Settings.Register(DespawnHitboxColor, new ColorSetting(Color.yellow));
         }
 
         public override void OnToggle()
@@ -36,15 +36,14 @@ namespace InfoOverload.Functions
                         Double2 launchPadPos = Base.planetLoader.spaceCenter.LaunchPadLocation.position;
                         Vector2 pos = WorldView.ToLocalPosition(launchPadPos);
 
-                        Vector3[] points = new Vector3[]
-                        {
+                        Vector3[] points = {
                             new Vector3(pos.x - 30f, pos.y - 200f), // Lower-left corner
                             new Vector3(pos.x + 30f, pos.y - 200f), // Lower-right corner
                             new Vector3(pos.x + 30f, pos.y + 200f), // Upper-right corner
-                            new Vector3(pos.x - 30f, pos.y + 200f) // Upper-left corner
+                            new Vector3(pos.x - 30f, pos.y + 200f), // Upper-left corner
                         };
 
-                        Color c = Settings.Get<Color>(DESPAWN_HITBOX_COLOR);
+                        Color c = Settings.Get<Color>(DespawnHitboxColor);
                         GLDrawer.DrawLine(points[0], points[1], c, 0.0025f * WorldView.main.viewDistance);
                         GLDrawer.DrawLine(points[1], points[2], c, 0.0025f * WorldView.main.viewDistance);
                         GLDrawer.DrawLine(points[2], points[3], c, 0.0025f * WorldView.main.viewDistance);
@@ -62,19 +61,19 @@ namespace InfoOverload.Functions
     public class DockingPorts : Function
     {
         public override string Name => "Docking Ports";
-        const string POSITIVE_COLOR = "Positive Color";
-        const string NEGATIVE_COLOR = "Negative Color";
-        const string INACTIVE_COLOR = "Inactive Color";
-        const string RANGE_CIRCLE_DETAIL = "Range Circle Detail";
-        const string FORCE_LINE_SCALE = "Force Line Scale";
+        private const string PositiveColor = "Positive Color";
+        private const string NegativeColor = "Negative Color";
+        private const string InactiveColor = "Inactive Color";
+        private const string RangeCircleDetail = "Range Circle Detail";
+        private const string ForceLineScale = "Force Line Scale";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(POSITIVE_COLOR, new ColorSetting(Color.green));
-            Settings.Register(NEGATIVE_COLOR, new ColorSetting(Color.red));
-            Settings.Register(INACTIVE_COLOR, new ColorSetting(Color.magenta));
-            Settings.Register(RANGE_CIRCLE_DETAIL, new FloatSetting(50f, FloatSetting.IsPositive()));
-            Settings.Register(FORCE_LINE_SCALE, new FloatSetting(1f));
+            Settings.Register(PositiveColor, new ColorSetting(Color.green));
+            Settings.Register(NegativeColor, new ColorSetting(Color.red));
+            Settings.Register(InactiveColor, new ColorSetting(Color.magenta));
+            Settings.Register(RangeCircleDetail, new FloatSetting(50f, FloatSetting.IsPositive()));
+            Settings.Register(ForceLineScale, new FloatSetting(1f));
         }
 
         public override void OnToggle()
@@ -87,8 +86,8 @@ namespace InfoOverload.Functions
                     delegate
                     {
                         List<DockingPortModule> ports = new List<DockingPortModule>();
-                        int resolution = (int) (Settings.Get<float>(RANGE_CIRCLE_DETAIL) + 0.5f);
-                        float forceScale = Settings.Get<float>(FORCE_LINE_SCALE);
+                        int resolution = (int) (Settings.Get<float>(RangeCircleDetail) + 0.5f);
+                        float forceScale = Settings.Get<float>(ForceLineScale);
                         if (SceneUtil.InBuild)
                         {
                             ports.AddRange(BuildManager.main.buildGrid.activeGrid.partsHolder.GetModules<DockingPortModule>());
@@ -106,15 +105,15 @@ namespace InfoOverload.Functions
                             return;
                         }
 
-                        Color inactive = Settings.Get<Color>(INACTIVE_COLOR);
-                        Color negative = Settings.Get<Color>(NEGATIVE_COLOR);
-                        Color positive = Settings.Get<Color>(POSITIVE_COLOR);
+                        Color inactive = Settings.Get<Color>(InactiveColor);
+                        Color negative = Settings.Get<Color>(NegativeColor);
+                        Color positive = Settings.Get<Color>(PositiveColor);
 
                         foreach (DockingPortModule port in ports)
                         {
-                            Color indicatorColor = !port.isDockable.Value ? inactive : (port.forceMultiplier.Value < 0 ? negative : positive);
+                            Color indicatorColor = !port.isDockable.Value ? inactive : port.forceMultiplier.Value < 0 ? negative : positive;
 
-                            GLDrawer.DrawCircle(port.transform.position, 0.05f, (int) resolution, indicatorColor);
+                            GLDrawer.DrawCircle(port.transform.position, 0.05f, resolution, indicatorColor);
                             float radius = port.pullDistance * Mathf.Max(Mathf.Abs(port.trigger.transform.lossyScale.x), Mathf.Abs(port.trigger.transform.lossyScale.y));
                             GLDrawerHelper.DrawCircle(port.transform.position, radius, resolution, indicatorColor, 0.03f);
 
@@ -125,7 +124,7 @@ namespace InfoOverload.Functions
                                     if (otherPort.isDockable.Value)
                                     {
                                         Vector3 force = port.forceMultiplier.Value * port.pullForce * (otherPort.transform.position - port.transform.position).normalized;
-                                        GLDrawer.DrawLine(port.transform.position, port.transform.position + (force / forceScale), indicatorColor, 0.02f);
+                                        GLDrawer.DrawLine(port.transform.position, port.transform.position + force / forceScale, indicatorColor, 0.02f);
                                     }
                                 }
                             }
@@ -143,19 +142,19 @@ namespace InfoOverload.Functions
     public class DisplayCoM : Function
     {
         public override string Name => "Display CoM";
-        const string DOT_RADIUS = "Dot Radius";
-        const string COM_COLOR = "CoM Color";
-        const string SELECTED_COM_COLOR = "Selected CoM Color";
-        const string SHOW_FORCE_OF_GRAVITY = "Show Force Of Gravity";
-        const string FORCE_OF_GRAVITY_SCALE = "Force Of Gravity Scale";
+        private const string DotRadius = "Dot Radius";
+        private const string CoMColor = "CoM Color";
+        private const string SelectedCoMColor = "Selected CoM Color";
+        private const string ShowForceOfGravity = "Show Force Of Gravity";
+        private const string ForceOfGravityScale = "Force Of Gravity Scale";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(DOT_RADIUS, new FloatSetting(0.25f, FloatSetting.IsPositive()));
-            Settings.Register(SHOW_FORCE_OF_GRAVITY, new BoolSetting(false));
-            Settings.Register(FORCE_OF_GRAVITY_SCALE, new FloatSetting(1f));
-            Settings.Register(COM_COLOR, new ColorSetting(Color.yellow));
-            Settings.Register(SELECTED_COM_COLOR, new ColorSetting(Color.green));
+            Settings.Register(DotRadius, new FloatSetting(0.25f, FloatSetting.IsPositive()));
+            Settings.Register(ShowForceOfGravity, new BoolSetting(false));
+            Settings.Register(ForceOfGravityScale, new FloatSetting(1f));
+            Settings.Register(CoMColor, new ColorSetting(Color.yellow));
+            Settings.Register(SelectedCoMColor, new ColorSetting(Color.green));
         }
         public override void OnToggle()
         {
@@ -171,7 +170,7 @@ namespace InfoOverload.Functions
                         if (SceneUtil.InBuild)
                         {
                             Location launchpad = Base.planetLoader.spaceCenter.LaunchPadLocation;
-                            gravity = (Vector2) launchpad.planet.GetGravity(launchpad.position);
+                            gravity = launchpad.planet.GetGravity(launchpad.position);
 
                             float mass = 0;
                             foreach (Part part in BuildManager.main.buildGrid.activeGrid.partsHolder.parts)
@@ -185,7 +184,7 @@ namespace InfoOverload.Functions
                         {
                             if (PlayerController.main.player.Value is Rocket rocket)
                             {
-                                gravity = (Vector2) rocket.location.planet.Value.GetGravity(rocket.location.position.Value);
+                                gravity = rocket.location.planet.Value.GetGravity(rocket.location.position.Value);
                                 centerOfMass = (Vector2) rocket.rb2d.transform.position + (Vector2) rocket.rb2d.transform.TransformVector(rocket.mass.GetCenterOfMass());
                             }
                         }
@@ -195,12 +194,12 @@ namespace InfoOverload.Functions
                             return;
                         }
 
-                        float radius = Settings.Get<float>(DOT_RADIUS);
-                        Color color = Settings.Get<Color>(COM_COLOR);
+                        float radius = Settings.Get<float>(DotRadius);
+                        Color color = Settings.Get<Color>(CoMColor);
 
-                        if (Settings.Get<bool>(SHOW_FORCE_OF_GRAVITY))
+                        if (Settings.Get<bool>(ShowForceOfGravity))
                         {
-                            GLDrawer.DrawLine(centerOfMass, centerOfMass + gravity * Settings.Get<float>(FORCE_OF_GRAVITY_SCALE), color, 0.1f);
+                            GLDrawer.DrawLine(centerOfMass, centerOfMass + gravity * Settings.Get<float>(ForceOfGravityScale), color, 0.1f);
                         }
                         GLDrawer.DrawCircle(centerOfMass, radius, 50, color);
 
@@ -214,7 +213,7 @@ namespace InfoOverload.Functions
                                 selectedCenterOfMass += (part.Position + part.centerOfMass.Value * part.orientation) * part.mass.Value;
                             }
                             selectedCenterOfMass /= selectedMass;
-                            GLDrawer.DrawCircle(selectedCenterOfMass, radius, 50, Settings.Get<Color>(SELECTED_COM_COLOR));
+                            GLDrawer.DrawCircle(selectedCenterOfMass, radius, 50, Settings.Get<Color>(SelectedCoMColor));
                         }
                     }
                 );
@@ -229,25 +228,25 @@ namespace InfoOverload.Functions
     public class ThrustForces : Function
     {
         public override string Name => "Thrust Forces";
-        const string SHOW_INDIVIDUAL_FORCES = "Show Individual Forces";
-        const string SHOW_NET_FORCE = "Show Net Force";
-        const string DOT_RADIUS = "Dot Radius";
-        const string INDIVIDUAL_FORCE_SCALE = "Individual Force Scale";
-        const string NET_FORCE_SCALE = "Net Force Scale";
-        const string INDIVIDUAL_FORCE_COLOR = "Individual Force Color";
-        const string NET_FORCE_COLOR = "Net Force Color";
-        const string SELECTED_FORCE_COLOR = "Selected Force Color";
+        private const string ShowIndividualForces = "Show Individual Forces";
+        private const string ShowNetForce = "Show Net Force";
+        private const string DotRadius = "Dot Radius";
+        private const string IndividualForceScale = "Individual Force Scale";
+        private const string NetForceScale = "Net Force Scale";
+        private const string IndividualForceColor = "Individual Force Color";
+        private const string NetForceColor = "Net Force Color";
+        private const string SelectedForceColor = "Selected Force Color";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(SHOW_INDIVIDUAL_FORCES, new BoolSetting(true));
-            Settings.Register(SHOW_NET_FORCE, new BoolSetting(true));
-            Settings.Register(DOT_RADIUS, new FloatSetting(0.25f, FloatSetting.IsPositive()));
-            Settings.Register(INDIVIDUAL_FORCE_SCALE, new FloatSetting(-0.5f));
-            Settings.Register(NET_FORCE_SCALE, new FloatSetting(1f));
-            Settings.Register(INDIVIDUAL_FORCE_COLOR, new ColorSetting(Color.orange));
-            Settings.Register(NET_FORCE_COLOR, new ColorSetting(Color.tomato));
-            Settings.Register(SELECTED_FORCE_COLOR, new ColorSetting(Color.seaGreen));
+            Settings.Register(ShowIndividualForces, new BoolSetting(true));
+            Settings.Register(ShowNetForce, new BoolSetting(true));
+            Settings.Register(DotRadius, new FloatSetting(0.25f, FloatSetting.IsPositive()));
+            Settings.Register(IndividualForceScale, new FloatSetting(-0.5f));
+            Settings.Register(NetForceScale, new FloatSetting(1f));
+            Settings.Register(IndividualForceColor, new ColorSetting(Color.orange));
+            Settings.Register(NetForceColor, new ColorSetting(Color.tomato));
+            Settings.Register(SelectedForceColor, new ColorSetting(Color.seaGreen));
         }
         
         public override void OnToggle()
@@ -276,21 +275,21 @@ namespace InfoOverload.Functions
                             return;
                         }
 
-                        if (Settings.Get<bool>(SHOW_INDIVIDUAL_FORCES))
+                        if (Settings.Get<bool>(ShowIndividualForces))
                         {
-                            float scale = Settings.Get<float>(INDIVIDUAL_FORCE_SCALE);
-                            Color color = Settings.Get<Color>(INDIVIDUAL_FORCE_COLOR);
+                            float scale = Settings.Get<float>(IndividualForceScale);
+                            Color color = Settings.Get<Color>(IndividualForceColor);
 
                             foreach (ThrustForceInfo force in forces)
                             {
                                 GLDrawer.DrawLine(force.WorldPosition, force.WorldPosition + scale * force.ThrustForce, color, 0.05f);
                             }
                         }
-                        if (Settings.Get<bool>(SHOW_NET_FORCE))
+                        if (Settings.Get<bool>(ShowNetForce))
                         {
-                            float radius = Settings.Get<float>(DOT_RADIUS);
-                            float scale = Settings.Get<float>(NET_FORCE_SCALE);
-                            Color color = Settings.Get<Color>(NET_FORCE_COLOR);
+                            float radius = Settings.Get<float>(DotRadius);
+                            float scale = Settings.Get<float>(NetForceScale);
+                            Color color = Settings.Get<Color>(NetForceColor);
 
                             Vector2 netThrust = forces.Select(tfi => tfi.ThrustForce).Sum();
                             Vector2 netCoT = forces.Select(tfi => tfi.WorldPosition * tfi.ThrustForce.magnitude).Sum();
@@ -307,9 +306,9 @@ namespace InfoOverload.Functions
                             {
                                 return;
                             }
-                            float radius = Settings.Get<float>(DOT_RADIUS);
-                            float scale = Settings.Get<float>(NET_FORCE_SCALE);
-                            Color color = Settings.Get<Color>(SELECTED_FORCE_COLOR);
+                            float radius = Settings.Get<float>(DotRadius);
+                            float scale = Settings.Get<float>(NetForceScale);
+                            Color color = Settings.Get<Color>(SelectedForceColor);
 
                             Vector2 netThrust = forces.Select(tfi => tfi.ThrustForce).Sum();
                             Vector2 netCoT = forces.Select(tfi => tfi.WorldPosition * tfi.ThrustForce.magnitude).Sum();
@@ -331,15 +330,15 @@ namespace InfoOverload.Functions
     public class DisplayLoadDistances : Function
     {
         public override string Name => "Load Distances";
-        const string LOAD_COLOR = "Load Color";
-        const string UNLOAD_COLOR = "Unload Color";
-        const string SHOW_IN_MAP = "Show In Map";
+        private const string LoadColor = "Load Color";
+        private const string UnloadColor = "Unload Color";
+        private const string ShowInMap = "Show In Map";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(LOAD_COLOR, new ColorSetting(Color.green));
-            Settings.Register(UNLOAD_COLOR, new ColorSetting(Color.red));
-            Settings.Register(SHOW_IN_MAP, new BoolSetting(true));
+            Settings.Register(LoadColor, new ColorSetting(Color.green));
+            Settings.Register(UnloadColor, new ColorSetting(Color.red));
+            Settings.Register(ShowInMap, new BoolSetting(true));
         }
 
         public override void OnToggle()
@@ -353,13 +352,13 @@ namespace InfoOverload.Functions
                     {
                         if (PlayerController.main.player.Value is Rocket rocket)
                         {
-                            Color unload = Settings.Get<Color>(UNLOAD_COLOR);
-                            Color load = Settings.Get<Color>(LOAD_COLOR);
+                            Color unload = Settings.Get<Color>(UnloadColor);
+                            Color load = Settings.Get<Color>(LoadColor);
 
                             Location loc = WorldView.main.ViewLocation;
                             
                             Vector2 center = WorldView.ToLocalPosition(loc.position);
-                            int resolution = 64;
+                            const int resolution = 64;
                             float radius = (float)rocket.physics.loader.loadDistance * 1.2f; // Unload radius.
                             GLDrawerHelper.DrawCircle(center, radius, resolution, unload, 0.0025f * WorldView.main.viewDistance);
 
@@ -369,13 +368,13 @@ namespace InfoOverload.Functions
                     },
                     delegate
                     {
-                        if (Settings.Get<bool>(SHOW_IN_MAP) && PlayerController.main.player.Value is Rocket rocket)
+                        if (Settings.Get<bool>(ShowInMap) && PlayerController.main.player.Value is Rocket rocket)
                         {
-                            Color load = Settings.Get<Color>(LOAD_COLOR);
-                            Color unload = Settings.Get<Color>(UNLOAD_COLOR);
+                            Color load = Settings.Get<Color>(LoadColor);
+                            Color unload = Settings.Get<Color>(UnloadColor);
                             
-                            var loc = WorldView.main.ViewLocation;
-                            int resolution = 64;
+                            Location loc = WorldView.main.ViewLocation;
+                            const int resolution = 64;
                             
                             float radius = (float)rocket.physics.loader.loadDistance * 1.2f; // Unload radius.
                             MapVisuals.DrawCircle(loc.position, loc.planet, radius, resolution, unload);
@@ -406,13 +405,13 @@ namespace InfoOverload.Functions
     public class DisplayPartColliders : Function
     {
         public override string Name => "Part Colliders";
-        const string COLLIDER_COLOR = "Collider Color";
-        const string TERRAIN_ONLY_COLLIDER_COLOR = "Terrain Only Collider Color";
+        private const string ColliderColor = "Collider Color";
+        private const string TerrainOnlyColliderColor = "Terrain Only Collider Color";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(COLLIDER_COLOR, new ColorSetting(Color.cyan));
-            Settings.Register(TERRAIN_ONLY_COLLIDER_COLOR, new ColorSetting(Color.dodgerBlue));
+            Settings.Register(ColliderColor, new ColorSetting(Color.cyan));
+            Settings.Register(TerrainOnlyColliderColor, new ColorSetting(Color.dodgerBlue));
         }
 
         public override void OnToggle()
@@ -429,8 +428,8 @@ namespace InfoOverload.Functions
                         List<ColliderModule> colliders = new List<ColliderModule>();
                         List<WheelModule> wheels = new List<WheelModule>();
 
-                        Color color = Settings.Get<Color>(COLLIDER_COLOR);
-                        Color terrainOnlyColor = Settings.Get<Color>(TERRAIN_ONLY_COLLIDER_COLOR);
+                        Color color = Settings.Get<Color>(ColliderColor);
+                        Color terrainOnlyColor = Settings.Get<Color>(TerrainOnlyColliderColor);
 
                         if (SceneUtil.InBuild)
                         {
@@ -479,25 +478,30 @@ namespace InfoOverload.Functions
                         // * Render non colliding part colliders. (They don't interact with other parts. Also rendering them first since they are a different color and less important.)
                         foreach (ColliderModule col in terrainColliders)
                         {
-                            if (col is PolygonCollider polygonData)
+                            switch (col)
                             {
-                                Vector2[] points = polygonData.polygon.polygon.GetVerticesWorld(polygonData.transform);
-                                for (int i = 0; i < points.Length; i++)
+                                case PolygonCollider polygonData:
                                 {
-                                    Vector2 p1 = points[i];
-                                    Vector2 p2 = points[i+1 != points.Length ? i+1 : 0];
-                                    GLDrawer.DrawLine(p1, p2, terrainOnlyColor, 0.05f);
-                                }
-                            }
-                            else if (col is SurfaceCollider surfaceData)
-                            {
-                                var surfaces = surfaceData.surfaces.surfaces;
-                                foreach (Surfaces surface in surfaces)
-                                {
-                                    foreach (Line2 line in surface.GetSurfacesWorld())
+                                    Vector2[] points = polygonData.polygon.polygon.GetVerticesWorld(polygonData.transform);
+                                    for (int i = 0; i < points.Length; i++)
                                     {
-                                        GLDrawer.DrawLine(line.start, line.end, terrainOnlyColor, 0.05f);
+                                        Vector2 p1 = points[i];
+                                        Vector2 p2 = points[i+1 != points.Length ? i+1 : 0];
+                                        GLDrawer.DrawLine(p1, p2, terrainOnlyColor, 0.05f);
                                     }
+                                    break;
+                                }
+                                case SurfaceCollider surfaceData:
+                                {
+                                    List<Surfaces> surfaces = surfaceData.surfaces.surfaces;
+                                    foreach (Surfaces surface in surfaces)
+                                    {
+                                        foreach (Line2 line in surface.GetSurfacesWorld())
+                                        {
+                                            GLDrawer.DrawLine(line.start, line.end, terrainOnlyColor, 0.05f);
+                                        }
+                                    }
+                                    break;
                                 }
                             }
                         }
@@ -505,25 +509,27 @@ namespace InfoOverload.Functions
                         // * Normal colliders.
                         foreach (ColliderModule col in colliders)
                         {
-                            if (col is PolygonCollider polygonData)
+                            switch (col)
                             {
-                                Vector2[] points = polygonData.polygon.polygon.GetVerticesWorld(polygonData.transform);
-                                for (int i = 0; i < points.Length; i++)
+                                case PolygonCollider polygonData:
                                 {
-                                    Vector2 p1 = points[i];
-                                    Vector2 p2 = points[i+1 != points.Length ? i+1 : 0];
-                                    GLDrawer.DrawLine(p1, p2, color, 0.05f);
+                                    Vector2[] points = polygonData.polygon.polygon.GetVerticesWorld(polygonData.transform);
+                                    for (int i = 0; i < points.Length; i++)
+                                    {
+                                        Vector2 p1 = points[i];
+                                        Vector2 p2 = points[i+1 != points.Length ? i+1 : 0];
+                                        GLDrawer.DrawLine(p1, p2, color, 0.05f);
+                                    }
+                                    break;
                                 }
-                            }
-                            else if (col is SurfaceCollider surfaceData)
-                            {
-                                var surfaces = surfaceData.surfaces.surfaces;
-                                foreach (Surfaces surface in surfaces)
+                                case SurfaceCollider surfaceData:
                                 {
-                                    foreach (Line2 line in surface.GetSurfacesWorld())
+                                    List<Surfaces> surfaces = surfaceData.surfaces.surfaces;
+                                    foreach (Line2 line in surfaces.SelectMany(s => s.GetSurfacesWorld()))
                                     {
                                         GLDrawer.DrawLine(line.start, line.end, color, 0.05f);
                                     }
+                                    break;
                                 }
                             }
                         }
@@ -546,7 +552,7 @@ namespace InfoOverload.Functions
                             CircleCollider2D col = wheel.GetComponent<CircleCollider2D>();
                             float radius = col.radius * Mathf.Max(Mathf.Abs(col.transform.lossyScale.x), Mathf.Abs(col.transform.lossyScale.y));
                             Vector2 center = col.transform.TransformPoint(col.offset);
-                            int resolution = 20;
+                            const int resolution = 20;
                             
                             GLDrawerHelper.DrawCircle(center, radius, resolution, color, 0.05f);
                         }
@@ -563,11 +569,11 @@ namespace InfoOverload.Functions
     public class DisplayTerrainColliders : Function
     {
         public override string Name => "Terrain Colliders";
-        const string COLLIDER_COLOR = "Collider Color";
+        private const string ColliderColor = "Collider Color";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(COLLIDER_COLOR, new ColorSetting(Color.white));
+            Settings.Register(ColliderColor, new ColorSetting(Color.white));
         }
 
         public override void OnToggle()
@@ -579,7 +585,7 @@ namespace InfoOverload.Functions
                     Name,
                     delegate
                     {
-                        Color color = Settings.Get<Color>(COLLIDER_COLOR);
+                        Color color = Settings.Get<Color>(ColliderColor);
                         foreach (Transform child in TerrainColliderManager.main.transform)
                         {
                             if (child.GetComponent<PolygonCollider2D>() is PolygonCollider2D col)
@@ -603,40 +609,40 @@ namespace InfoOverload.Functions
     public class ChangeOutlines : Function
     {
         public override string Name => "Custom Outlines";
-        const string DISABLE_OUTLINES = "Disable Outlines";
-        const string OUTLINE_COLOR = "Outline Color";
-        const string OUTLINE_WIDTH = "Outline Width";
+        private const string DisableOutlines = "Disable Outlines";
+        private const string OutlineColor = "Outline Color";
+        private const string OutlineWidth = "Outline Width";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(DISABLE_OUTLINES, new BoolSetting(true));
-            Settings.Register(OUTLINE_COLOR, new ColorSetting(Color.white));
-            Settings.Register(OUTLINE_WIDTH, new FloatSetting(0.1f));
+            Settings.Register(DisableOutlines, new BoolSetting(true));
+            Settings.Register(OutlineColor, new ColorSetting(Color.white));
+            Settings.Register(OutlineWidth, new FloatSetting(0.1f));
         }
 
         public override void OnToggle()
         {
             Patches.changeOutlines = Settings.Active;
-            Patches.outlinesColor = Settings.GetRef<Color>(OUTLINE_COLOR);
-            Patches.outlinesWidth = Settings.GetRef<float>(OUTLINE_WIDTH);
-            Patches.disableOutlines = Settings.GetRef<bool>(DISABLE_OUTLINES);
+            Patches.outlinesColor = Settings.GetRef<Color>(OutlineColor);
+            Patches.outlinesWidth = Settings.GetRef<float>(OutlineWidth);
+            Patches.disableOutlines = Settings.GetRef<bool>(DisableOutlines);
         }
     }
     
     public class FreeCam : Function
     {
         public override string Name => "Free Cam";
-        const string LOCK_TO_LOAD_DISTANCE = "Lock To Unload Distance";
+        private const string LockToLoadDistance = "Lock To Unload Distance";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(LOCK_TO_LOAD_DISTANCE, new BoolSetting(true));
+            Settings.Register(LockToLoadDistance, new BoolSetting(true));
         }
 
         public override void OnToggle()
         {
             Patches.enableFreeCam = Settings.Active;
-            Patches.lockFreeCam = Settings.GetRef<bool>(LOCK_TO_LOAD_DISTANCE);
+            Patches.lockFreeCam = Settings.GetRef<bool>(LockToLoadDistance);
             // * Reset camera position when free cam is turned off.
             if (!Patches.enableFreeCam) 
                 PlayerController.main.cameraOffset.Value = Vector2.zero;
@@ -646,25 +652,25 @@ namespace InfoOverload.Functions
     public class AeroOverlay : Function
     {
         public override string Name => "Aero Overlay";
-        const string SHOW_DRAG_FORCE_LINE = "Show Drag Force Line";
-        const string DRAG_FORCE_LINE_SCALE = "Drag Force Line Scale";
-        const string SHOW_EXPOSED_SURFACES = "Show Exposed Surfaces";
-        const string SHOW_ALL_SURFACES = "Show All Surfaces";
-        const string INCLUDE_PARACHUTE_DRAG = "Include Parachute Drag";
-        const string DRAG_FORCE_LINE_COLOR = "Drag Force Line Color";
-        const string EXPOSED_SURFACES_COLOR = "Exposed Surfaces Color";
-        const string ALL_SURFACES_COLOR = "All Surfaces Color";
+        private const string ShowDragForceLine = "Show Drag Force Line";
+        private const string DragForceLineScale = "Drag Force Line Scale";
+        private const string ShowExposedSurfaces = "Show Exposed Surfaces";
+        private const string ShowAllSurfaces = "Show All Surfaces";
+        private const string IncludeParachuteDrag = "Include Parachute Drag";
+        private const string DragForceLineColor = "Drag Force Line Color";
+        private const string ExposedSurfacesColor = "Exposed Surfaces Color";
+        private const string AllSurfacesColor = "All Surfaces Color";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(SHOW_DRAG_FORCE_LINE, new BoolSetting(true));
-            Settings.Register(DRAG_FORCE_LINE_SCALE, new FloatSetting(1f));
-            Settings.Register(SHOW_EXPOSED_SURFACES, new BoolSetting(true));
-            Settings.Register(SHOW_ALL_SURFACES, new BoolSetting(false));
-            Settings.Register(INCLUDE_PARACHUTE_DRAG, new BoolSetting(true));
-            Settings.Register(DRAG_FORCE_LINE_COLOR, new ColorSetting(Color.red));
-            Settings.Register(EXPOSED_SURFACES_COLOR, new ColorSetting(Color.red));
-            Settings.Register(ALL_SURFACES_COLOR, new ColorSetting(Color.darkRed));
+            Settings.Register(ShowDragForceLine, new BoolSetting(true));
+            Settings.Register(DragForceLineScale, new FloatSetting(1f));
+            Settings.Register(ShowExposedSurfaces, new BoolSetting(true));
+            Settings.Register(ShowAllSurfaces, new BoolSetting(false));
+            Settings.Register(IncludeParachuteDrag, new BoolSetting(true));
+            Settings.Register(DragForceLineColor, new ColorSetting(Color.red));
+            Settings.Register(ExposedSurfacesColor, new ColorSetting(Color.red));
+            Settings.Register(AllSurfacesColor, new ColorSetting(Color.darkRed));
         }
 
         public override void OnToggle()
@@ -683,30 +689,30 @@ namespace InfoOverload.Functions
                                 Location location = rocket.location.Value;
                                 if (location.velocity.Mag_MoreThan(0.001))
                                 {
-                                    float angle = (float) location.velocity.AngleRadians - (Mathf.PI / 2f);
+                                    float angle = (float) location.velocity.AngleRadians - Mathf.PI / 2f;
                                     Matrix2x2 rotate = Matrix2x2.Angle(-angle);
                                     Matrix2x2 localToWorld = Matrix2x2.Angle(angle);
 
                                     List<Surface> surfaces = Aero_Rocket.GetDragSurfaces(rocket.partHolder, rotate);
                                     List<Surface> exposedSurfaces = AeroModule.GetExposedSurfaces(surfaces);
                                     
-                                    if (Settings.Get<bool>(SHOW_ALL_SURFACES))
+                                    if (Settings.Get<bool>(ShowAllSurfaces))
                                     {
-                                        Color color = Settings.Get<Color>(ALL_SURFACES_COLOR);
+                                        Color color = Settings.Get<Color>(AllSurfacesColor);
                                         foreach (Surface surface in surfaces)
                                         {
                                             GLDrawer.DrawLine(localToWorld * surface.line.start, localToWorld * surface.line.end, color, 0.1f);
                                         }
                                     }
-                                    if (Settings.Get<bool>(SHOW_EXPOSED_SURFACES))
+                                    if (Settings.Get<bool>(ShowExposedSurfaces))
                                     {
-                                        Color color = Settings.Get<Color>(EXPOSED_SURFACES_COLOR);
+                                        Color color = Settings.Get<Color>(ExposedSurfacesColor);
                                         foreach (Surface surface in exposedSurfaces)
                                         {
                                             GLDrawer.DrawLine(localToWorld * surface.line.start, localToWorld * surface.line.end, color, 0.1f);
                                         }
                                     }
-                                    if (Settings.Get<bool>(SHOW_DRAG_FORCE_LINE))
+                                    if (Settings.Get<bool>(ShowDragForceLine))
                                     {
                                         (float drag, Vector2 centerOfDrag) = Patches.AeroModule_CalculateDragForce.CalculateDragForce(exposedSurfaces);
                                         Vector2 centerOfDragWorld = localToWorld * centerOfDrag;
@@ -715,7 +721,7 @@ namespace InfoOverload.Functions
                                         float density = (float) location.planet.GetAtmosphericDensity(location.Height);
                                         float force = drag * 1.5f * (float) location.velocity.sqrMagnitude;
 
-                                        if (Settings.Get<bool>(INCLUDE_PARACHUTE_DRAG))
+                                        if (Settings.Get<bool>(IncludeParachuteDrag))
                                         {
                                             ParachuteModule[] modules = rocket.partHolder.GetModules<ParachuteModule>();
                                             foreach (ParachuteModule parachuteModule in modules)
@@ -730,9 +736,9 @@ namespace InfoOverload.Functions
                                         }
                                         Vector2 vector = -location.velocity.ToVector2.normalized * (force * density) / rocket.mass.GetMass();
                                         
-                                        Color color = Settings.Get<Color>(DRAG_FORCE_LINE_COLOR);
+                                        Color color = Settings.Get<Color>(DragForceLineColor);
                                         GLDrawer.DrawCircle(centerOfDragWorld, 0.25f, 20, color);
-                                        GLDrawer.DrawLine(centerOfDragWorld, (Settings.Get<float>(DRAG_FORCE_LINE_SCALE) * vector) + centerOfDragWorld, color, 0.1f);
+                                        GLDrawer.DrawLine(centerOfDragWorld, Settings.Get<float>(DragForceLineScale) * vector + centerOfDragWorld, color, 0.1f);
                                     }
                                 }
                             }
@@ -750,11 +756,11 @@ namespace InfoOverload.Functions
     public class EngineHeat : Function
     {
         public override string Name => "Engine Heat";
-        const string BORDER_COLOR = "Border Color";
+        private const string BorderColor = "Border Color";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(BORDER_COLOR, new ColorSetting(Color.orange));
+            Settings.Register(BorderColor, new ColorSetting(Color.orange));
         }
 
         public override void OnToggle()
@@ -784,17 +790,17 @@ namespace InfoOverload.Functions
                             return;
                         }
                         
-                        Color color = Settings.Get<Color>(BORDER_COLOR);
+                        Color color = Settings.Get<Color>(BorderColor);
                         foreach (EngineModule engine in engines)
                         {
                             BoxCollider2D col = engine.GetComponentInChildren<BoxCollider2D>(true);
                             if (col == null || !engine.engineOn.Value)
                                 continue;
 
-                            float top = col.offset.y + (col.size.y / 2f);
-                            float bottom = col.offset.y - (col.size.y / 2f);
-                            float left = col.offset.x - (col.size.x / 2f);
-                            float right = col.offset.x + (col.size.x /2f);
+                            float top = col.offset.y + col.size.y / 2f;
+                            float bottom = col.offset.y - col.size.y / 2f;
+                            float left = col.offset.x - col.size.x / 2f;
+                            float right = col.offset.x + col.size.x /2f;
                             
                             Vector2 topLeft = col.transform.TransformPoint(new Vector2(left, top));
                             Vector2 topRight = col.transform.TransformPoint(new Vector2(right, top));
@@ -819,21 +825,21 @@ namespace InfoOverload.Functions
     public class WaterForces : Function
     {
         public override string Name => "Water Forces";
-        const string SHOW_NET_FORCE = "Show Net Force";
-        const string DOT_RADIUS = "Dot Radius";
-        const string BUOYANT_SCALE = "Buoyant Force Scale";
-        const string BUOYANT_COLOR = "Buoyant Force Color";
-        const string DRAG_SCALE = "Drag Force Scale";
-        const string DRAG_COLOR = "Drag Force Color";
+        private const string ShowNetForce = "Show Net Force";
+        private const string DotRadius = "Dot Radius";
+        private const string BuoyantScale = "Buoyant Force Scale";
+        private const string BuoyantColor = "Buoyant Force Color";
+        private const string DragScale = "Drag Force Scale";
+        private const string DragColor = "Drag Force Color";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(SHOW_NET_FORCE, new BoolSetting(true));
-            Settings.Register(DOT_RADIUS, new FloatSetting(0.25f, FloatSetting.IsPositive()));
-            Settings.Register(BUOYANT_SCALE, new FloatSetting(1f));
-            Settings.Register(DRAG_SCALE, new FloatSetting(1f));
-            Settings.Register(BUOYANT_COLOR, new ColorSetting(Color.aquamarine));
-            Settings.Register(DRAG_COLOR, new ColorSetting(Color.lightSeaGreen));
+            Settings.Register(ShowNetForce, new BoolSetting(true));
+            Settings.Register(DotRadius, new FloatSetting(0.25f, FloatSetting.IsPositive()));
+            Settings.Register(BuoyantScale, new FloatSetting(1f));
+            Settings.Register(DragScale, new FloatSetting(1f));
+            Settings.Register(BuoyantColor, new ColorSetting(Color.aquamarine));
+            Settings.Register(DragColor, new ColorSetting(Color.lightSeaGreen));
         }
         public override void OnToggle()
         {
@@ -847,13 +853,13 @@ namespace InfoOverload.Functions
                         if (PlayerController.main.player.Value is Rocket rocket)
                         {
                             List<WaterForceInfo> forces = WaterCalculations.CalculateWaterForces(rocket);
-                            float radius = Settings.Get<float>(DOT_RADIUS);
-                            float buoyantScale = Settings.Get<float>(BUOYANT_SCALE);
-                            float dragScale = Settings.Get<float>(DRAG_SCALE);
-                            Color buoyantColor = Settings.Get<Color>(BUOYANT_COLOR);
-                            Color dragColor = Settings.Get<Color>(DRAG_COLOR);
+                            float radius = Settings.Get<float>(DotRadius);
+                            float buoyantScale = Settings.Get<float>(BuoyantScale);
+                            float dragScale = Settings.Get<float>(DragScale);
+                            Color buoyantColor = Settings.Get<Color>(BuoyantColor);
+                            Color dragColor = Settings.Get<Color>(DragColor);
 
-                            if (Settings.Get<bool>(SHOW_NET_FORCE) && forces.Count > 0)
+                            if (Settings.Get<bool>(ShowNetForce) && forces.Count > 0)
                             {
                                 Vector2 buoyantPos = forces.Select(wfi => wfi.WorldPosition * wfi.BuoyantForce.magnitude).Sum();
                                 Vector2 dragPos = forces.Select(wfi => wfi.WorldPosition * wfi.DragForce.magnitude).Sum();

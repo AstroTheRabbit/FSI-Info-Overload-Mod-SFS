@@ -6,7 +6,7 @@ namespace InfoOverload.Readouts
     {
         public static List<Readout> CurrentReadouts => SceneUtil.GetCurrent(WorldReadouts, BuildReadouts);
 
-        public static List<Readout> WorldReadouts = new List<Readout>()
+        public static readonly List<Readout> WorldReadouts = new List<Readout>
         {
             new ActiveCheats(),
             new RocketInfo(),
@@ -17,7 +17,7 @@ namespace InfoOverload.Readouts
             new MiscInfo(),
         };
 
-        public static List<Readout> BuildReadouts = new List<Readout>()
+        public static readonly List<Readout> BuildReadouts = new List<Readout>
         {
             new ActiveCheats(),
             new BuildInfo(),

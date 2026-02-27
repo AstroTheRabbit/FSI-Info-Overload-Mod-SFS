@@ -1,7 +1,7 @@
 using System;
-using UnityEngine;
-using SFS.UI.ModGUI;
 using InfoOverload.UI;
+using SFS.UI.ModGUI;
+using UnityEngine;
 
 namespace InfoOverload.Settings
 {
@@ -34,7 +34,7 @@ namespace InfoOverload.Settings
             this.filter = filter;
         }
 
-        public static Func<float, bool> IsPositive() => (float input) => input > 0.01;
+        public static Func<float, bool> IsPositive() => input => input > 0.01;
 
         public override void CreateUI(Container container, int width, int height)
         {
@@ -58,7 +58,7 @@ namespace InfoOverload.Settings
             this.filter = filter;
         }
 
-        public static Func<int, bool> InRangeInclusive(int min, int max) => (int input) => input >= min && input <= max;
+        public static Func<int, bool> InRangeInclusive(int min, int max) => input => input >= min && input <= max;
 
         public override void CreateUI(Container container, int width, int height)
         {
@@ -82,7 +82,7 @@ namespace InfoOverload.Settings
 
         public override void CreateUI(Container container, int width, int height)
         {
-            Label color_indicator = null;
+            Label color_indicator;
 
             int indicator_width = height / 2;
             int input_width = (width - 15 - indicator_width) / 3;
@@ -117,10 +117,12 @@ namespace InfoOverload.Settings
                 height,
                 text: Value.b.ToString(2, false)
             );
+            
+            color_indicator = Builder.CreateLabel(container, indicator_width, height, text: "Ø");
+            
             input_r.OnFloatInputChange(r => SetComponent(r, 0), Filter);
             input_g.OnFloatInputChange(g => SetComponent(g, 1), Filter);
             input_b.OnFloatInputChange(b => SetComponent(b, 2), Filter);
-            color_indicator = Builder.CreateLabel(container, indicator_width, height, text: "Ø");
             color_indicator.Color = Value;
         }
     }

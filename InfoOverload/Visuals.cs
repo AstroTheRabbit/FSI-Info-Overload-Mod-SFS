@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
-using SFS.WorldBase;
-using SFS.World.Maps;
 using ModLoader.Helpers;
+using SFS.World.Maps;
+using SFS.WorldBase;
+using UnityEngine;
 
 namespace InfoOverload
 {
@@ -23,7 +23,7 @@ namespace InfoOverload
             main = new GameObject("Info Overload - Visuals Manager").AddComponent<VisualsManager>();
         }
 
-        class Visual
+        private class Visual
         {
             private readonly Action drawWorld;
             private readonly Action drawMap;
@@ -55,11 +55,10 @@ namespace InfoOverload
 
         internal void Update()
         {
-            if (GLDrawer.main == null)
-                return;
-
-            if (!GLDrawer.main.drawers.Contains(this))
+            if (GLDrawer.main && !GLDrawer.main.drawers.Contains(this))
+            {
                 GLDrawer.Register(this);
+            }
         }
 
         void I_GLDrawer.Draw()
@@ -128,9 +127,9 @@ namespace InfoOverload
     {
         public static void DrawLine(Double2[] points, Planet planet, Color color)
         {
-            var conv = new Vector3[points.Length];
+            Vector3[] conv = new Vector3[points.Length];
 
-            for (var i = 0; i < points.Length; i++)
+            for (int i = 0; i < points.Length; i++)
             {
                 // Parentheses to avoid unnecessary additional precision loss.
                 conv[i] = new Vector3((float) (points[i].x / 1000), (float) (points[i].y / 1000));
@@ -141,7 +140,7 @@ namespace InfoOverload
 
         public static void DrawCircle(Double2 center, Planet planet, double radius, int resolution, Color color)
         {
-            var mapCenter = new Vector2((float) (center.x / 1000), (float) (center.y / 1000));
+            Vector2 mapCenter = new Vector2((float) (center.x / 1000), (float) (center.y / 1000));
             float r = (float)(radius / 1000);
             
             Vector3[] points = new Vector3[resolution+1];

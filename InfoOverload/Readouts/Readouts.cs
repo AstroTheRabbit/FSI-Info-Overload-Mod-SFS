@@ -1,12 +1,12 @@
-using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
-using SFS.Parts;
-using SFS.World;
-using SFS.Builds;
-using SFS.Translations;
-using SFS.Parts.Modules;
+using System.Linq;
 using InfoOverload.Settings;
+using SFS.Builds;
+using SFS.Parts;
+using SFS.Parts.Modules;
+using SFS.Translations;
+using SFS.World;
+using UnityEngine;
 using static SFS.Base;
 
 namespace InfoOverload.Readouts
@@ -14,21 +14,21 @@ namespace InfoOverload.Readouts
     public class RocketInfo : Readout
     {
         public override string Name => "Rocket Info";
-        const string ACCELERATION_INTERVAL = "Acceleration Interval";
+        private const string AccelerationInterval = "Acceleration Interval";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(ACCELERATION_INTERVAL, new FloatSetting(0.25f, FloatSetting.IsPositive()));
+            Settings.Register(AccelerationInterval, new FloatSetting(0.25f, FloatSetting.IsPositive()));
         }
 
-        Rocket rocket = null;
-        float time = 0;
-        Double2 prevVelocity = Double2.zero;
-        Double2 acceleration = Double2.zero;
+        private Rocket rocket = null;
+        private float time = 0;
+        private Double2 prevVelocity = Double2.zero;
+        private Double2 acceleration = Double2.zero;
 
         public override string GetText()
         {
-            if (rocket is Rocket r && r.rb2d != null)
+            if (rocket is Rocket r && r.rb2d)
             {
                 Location loc = r.location.Value;
                 float thrust_engines = rocket.partHolder.GetModules<EngineModule>().Sum(em => em.thrust.Value * em.throttle_Out.Value);
@@ -82,7 +82,7 @@ namespace InfoOverload.Readouts
             if (PlayerController.main.player.Value is Rocket rocket)
             {
                 time += Time.fixedDeltaTime;
-                if (time >= Settings.Get<float>(ACCELERATION_INTERVAL))
+                if (time >= Settings.Get<float>(AccelerationInterval))
                 {
                     Double2 velocity = rocket.location.velocity.Value;
                     acceleration = (velocity - prevVelocity) / time;
@@ -152,50 +152,52 @@ namespace InfoOverload.Readouts
     {
         public override string Name => "Selected Parts Info";
 
+        // ReSharper disable Unity.PerformanceAnalysis
         public override string GetText()
         {
-            if (BuildManager.main == null)
+            if (BuildManager.main)
             {
-                return null;
-            }
+                Part[] selected = BuildManager.main.buildGrid.GetSelectedParts();
 
-            Part[] selected = BuildManager.main.buildGrid.GetSelectedParts();
-
-            if (selected == null || selected.Length == 0)
-            {
-                return null;
-            }
-
-            double mass = 0;
-            double thrust = 0;
-
-            foreach (var part in selected)
-            {
-                mass += part.mass.Value;
-                if (part.GetComponentInChildren<EngineModule>() is EngineModule em)
+                if (selected == null || selected.Length == 0)
                 {
-                    thrust += em.thrust.Value * part.orientation.orientation.Value.y;
+                    return null;
                 }
-                if (part.GetComponentInChildren<BoosterModule>() is BoosterModule bm)
+
+                double mass = 0;
+                double thrust = 0;
+
+                foreach (Part part in selected)
                 {
-                    thrust += bm.thrustVector.Value.magnitude * part.orientation.orientation.Value.y;
+                    mass += part.mass.Value;
+                    if (part.GetComponentInChildren<EngineModule>() is EngineModule em)
+                    {
+                        thrust += em.thrust.Value * part.orientation.orientation.Value.y;
+                    }
+
+                    if (part.GetComponentInChildren<BoosterModule>() is BoosterModule bm)
+                    {
+                        thrust += bm.thrustVector.Value.magnitude * part.orientation.orientation.Value.y;
+                    }
                 }
+
+                Vector2 size = selected.GetDimensions();
+
+                string info = "Selected Parts Info:";
+                info += $"\n• Width: {size.x.ToString(3, false)}m";
+                info += $"\n• Height: {size.y.ToString(3, false)}m";
+                info += $"\n• Part count: {selected.Length}";
+                info += $"\n• Mass: {mass.ToString(3, false)}t";
+                if (thrust > 0)
+                {
+                    info += $"\n• Thrust: {thrust.ToString(3, false)}t";
+                    info += $"\n• TWR: {(thrust / mass).ToString(3, true)}";
+                }
+
+                return info;
             }
 
-            Vector2 size = selected.GetDimensions();
-
-            string info = "Selected Parts Info:";
-            info += $"\n• Width: {size.x.ToString(3, false)}m";
-            info += $"\n• Height: {size.y.ToString(3, false)}m";
-            info += $"\n• Part count: {selected.Length}";
-            info += $"\n• Mass: {mass.ToString(3, false)}t";
-            if (thrust > 0)
-            {
-                info += $"\n• Thrust: {thrust.ToString(3, false)}t";
-                info += $"\n• TWR: {(thrust / mass).ToString(3, true)}";
-            }
-
-            return info.ToString();
+            return null;
         }
     }
 
@@ -203,11 +205,11 @@ namespace InfoOverload.Readouts
     {
         public override string Name => "Atmo Info";
 
-        const string HIDE_PARACHUTE_INFO = "Hide Parachute Info";
+        private const string HideParachuteInfo = "Hide Parachute Info";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(HIDE_PARACHUTE_INFO, new BoolSetting(false));
+            Settings.Register(HideParachuteInfo, new BoolSetting(false));
         }
 
         public override string GetText()
@@ -221,7 +223,7 @@ namespace InfoOverload.Readouts
                     info += "\n• Current density: " + rocket.location.Value.planet.GetAtmosphericDensity(rocket.location.Value.Height).ToString(6, false);
                     info += "\n• Height: " + rocket.location.Value.planet.data.atmospherePhysics.height.ToDistanceString();
 
-                    if (!Settings.Get<bool>(HIDE_PARACHUTE_INFO))
+                    if (!Settings.Get<bool>(HideParachuteInfo))
                     {
                         info += "\n• Max parachute height: " + (rocket.location.Value.planet.data.atmospherePhysics.parachuteMultiplier * 2500).ToDistanceString();
                         info += "\n• Max parachute speed: " + (rocket.location.Value.planet.data.atmospherePhysics.parachuteMultiplier * 250).ToVelocityString();
@@ -250,10 +252,7 @@ namespace InfoOverload.Readouts
             if (worldBase.settings.cheats.noHeatDamage)      info += "\n• " + Loc.main.No_Heat_Damage_Name;
             if (worldBase.settings.cheats.noBurnMarks)       info += "\n• " + Loc.main.No_Burn_Marks_Name;
 
-            if (info == "Active Cheats:")
-                return null;
-            
-            return info;
+            return info == "Active Cheats:" ? null : info;
         }
     }
 
@@ -261,13 +260,13 @@ namespace InfoOverload.Readouts
     {
         public override string Name => "Misc. Info";
 
-        const string NORMAL_INTERVAL = "FPS Interval";
-        const string PHYSICS_INTERVAL = "Physics FPS Interval";
+        private const string NormalInterval = "FPS Interval";
+        private const string PhysicsInterval = "Physics FPS Interval";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(NORMAL_INTERVAL, new FloatSetting(0.5f, FloatSetting.IsPositive()));
-            Settings.Register(PHYSICS_INTERVAL, new FloatSetting(0.5f, FloatSetting.IsPositive()));
+            Settings.Register(NormalInterval, new FloatSetting(0.5f, FloatSetting.IsPositive()));
+            Settings.Register(PhysicsInterval, new FloatSetting(0.5f, FloatSetting.IsPositive()));
         }
 
         private int count_normal = 0;
@@ -280,15 +279,15 @@ namespace InfoOverload.Readouts
         public override string GetText()
         {
             string info = "Misc. Info:";
-            if (GameManager.main != null)
+            if (GameManager.main)
             {
                 int rockets_loaded = GameManager.main.rockets.Count(r => r.physics.loader.Loaded);
-                int rockets_total = GameManager.main.rockets.Count();
+                int rockets_total = GameManager.main.rockets.Count;
                 info += $"\n• No. rockets (L/T): {rockets_loaded}/{rockets_total}";
             }
 
             Double2 cam_pos;
-            if (GameManager.main != null)
+            if (GameManager.main)
                 cam_pos = WorldView.ToGlobalPosition(WorldView.main.worldCamera.position);
             else
                 cam_pos = (Double2) BuildManager.main.buildCamera.CameraPosition;
@@ -304,7 +303,7 @@ namespace InfoOverload.Readouts
         {
             count_normal += 1;
             elapsed_normal += Time.deltaTime;
-            if (elapsed_normal >= Settings.Get<float>(NORMAL_INTERVAL))
+            if (elapsed_normal >= Settings.Get<float>(NormalInterval))
             {
                 fps_normal = count_normal / elapsed_normal;
                 count_normal = 0;
@@ -316,7 +315,7 @@ namespace InfoOverload.Readouts
         {
             count_physics += 1;
             elapsed_physics += Time.fixedDeltaTime;
-            if (elapsed_physics >= Settings.Get<float>(PHYSICS_INTERVAL))
+            if (elapsed_physics >= Settings.Get<float>(PhysicsInterval))
             {
                 fps_physics = count_physics / elapsed_physics;
                 count_physics = 0;
@@ -331,10 +330,8 @@ namespace InfoOverload.Readouts
 
         public override string GetText()
         {
-            string info = "Part Counts:";
-
-            PartHolder parts = null;
-            if (BuildManager.main != null)
+            PartHolder parts;
+            if (BuildManager.main)
                 parts = BuildManager.main.buildGrid.activeGrid.partsHolder;
             else if (PlayerController.main.player.Value is Rocket rocket)
                 parts = rocket.partHolder;
@@ -350,15 +347,11 @@ namespace InfoOverload.Readouts
                 partCount[part.displayName.Field] += 1;
             }
 
-            foreach (var part in from p in partCount orderby p.Value descending select p)
-            {
-                info += $"\n• {part.Key}: {part.Value}";
-            }
-            
-            if (partCount.Count > 0)
-                return info;
-            else
-                return null;
+            string info = partCount
+                .OrderByDescending(p => p.Value)
+                .Aggregate("Part Counts:", (current, part) => current + $"\n• {part.Key}: {part.Value}");
+
+            return partCount.Count > 0 ? info : null;
         }
     }
 
@@ -366,19 +359,19 @@ namespace InfoOverload.Readouts
     {
         public override string Name => "Resource Counts";
 
-        const string SHOW_PERCENTAGES = "Show Percentages";
-        const string DECIMALS = "Decimals";
+        private const string ShowPercentages = "Show Percentages";
+        private const string Decimals = "Decimals";
 
         protected override void RegisterSettings()
         {
-            Settings.Register(SHOW_PERCENTAGES, new BoolSetting(false));
-            Settings.Register(DECIMALS, new IntSetting(3, IntSetting.InRangeInclusive(0, 5)));
+            Settings.Register(ShowPercentages, new BoolSetting(false));
+            Settings.Register(Decimals, new IntSetting(3, IntSetting.InRangeInclusive(0, 5)));
         }
 
         private struct ResourceCount
         {
-            public float Amount { get; set; }
-            public float Capacity { get; set; }
+            public float Amount { get; }
+            public float Capacity { get; }
 
             public ResourceCount(ResourceModule rm)
             {
@@ -414,7 +407,7 @@ namespace InfoOverload.Readouts
             string info = "Resource Counts:";
 
             PartHolder parts;
-            if (BuildManager.main != null)
+            if (BuildManager.main)
                 parts = BuildManager.main.buildGrid.activeGrid.partsHolder;
             else if (PlayerController.main.player.Value is Rocket rocket)
                 parts = rocket.partHolder;
@@ -456,8 +449,8 @@ namespace InfoOverload.Readouts
             foreach ((ResourceType type, ResourceCount count) in sorted)
             {
                 string name = type.displayName.Field;
-                int decimals = Settings.Get<int>(DECIMALS);
-                if (Settings.Get<bool>(SHOW_PERCENTAGES))
+                int decimals = Settings.Get<int>(Decimals);
+                if (Settings.Get<bool>(ShowPercentages))
                 {
                     string percentage = (100f * count.Amount / count.Capacity).ToString(decimals, true);
                     info += $"\n• {name} : {percentage}%";

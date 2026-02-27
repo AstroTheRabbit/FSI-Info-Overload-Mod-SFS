@@ -1,28 +1,30 @@
 using System;
 using System.Collections.Generic;
+using InfoOverload.Functions;
+using InfoOverload.Readouts;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using UnityEngine;
 using SFS.Parsers.Json;
-using InfoOverload.Readouts;
-using InfoOverload.Functions;
+using UnityEngine;
+
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
 
 namespace InfoOverload.Settings
 {
     public static class Settings
     {
-        public static Dictionary<string, ReadoutSettings> WorldReadouts = new Dictionary<string, ReadoutSettings>();
-        public static Dictionary<string, ReadoutSettings> BuildReadouts = new Dictionary<string, ReadoutSettings>();
-        public static Dictionary<string, FunctionSettings> WorldFunctions = new Dictionary<string, FunctionSettings>();
-        public static Dictionary<string, FunctionSettings> BuildFunctions = new Dictionary<string, FunctionSettings>();
+        public static readonly Dictionary<string, ReadoutSettings> WorldReadouts = new Dictionary<string, ReadoutSettings>();
+        public static readonly Dictionary<string, ReadoutSettings> BuildReadouts = new Dictionary<string, ReadoutSettings>();
+        public static readonly Dictionary<string, FunctionSettings> WorldFunctions = new Dictionary<string, FunctionSettings>();
+        public static readonly Dictionary<string, FunctionSettings> BuildFunctions = new Dictionary<string, FunctionSettings>();
 
         public static Dictionary<string, ReadoutSettings> CurrentReadouts => SceneUtil.GetCurrent(WorldReadouts, BuildReadouts);
         public static Dictionary<string, FunctionSettings> CurrentFunctions => SceneUtil.GetCurrent(WorldFunctions, BuildFunctions);
 
-        public static IFile FilePath_WorldReadouts => Main.Folder.GetFile("world-readouts.txt");
-        public static IFile FilePath_BuildReadouts => Main.Folder.GetFile("build-readouts.txt");
-        public static IFile FilePath_WorldFunctions => Main.Folder.GetFile("world-functions.txt");
-        public static IFile FilePath_BuildFunctions => Main.Folder.GetFile("build-functions.txt");
+        public static IFile FilePath_WorldReadouts => Entrypoint.Folder.GetFile("world-readouts.txt");
+        public static IFile FilePath_BuildReadouts => Entrypoint.Folder.GetFile("build-readouts.txt");
+        public static IFile FilePath_WorldFunctions => Entrypoint.Folder.GetFile("world-functions.txt");
+        public static IFile FilePath_BuildFunctions => Entrypoint.Folder.GetFile("build-functions.txt");
 
         public static void Init()
         {
@@ -41,12 +43,7 @@ namespace InfoOverload.Settings
 
         public static void Load()
         {
-            Load(WorldReadouts, FilePath_WorldReadouts);
-            Load(BuildReadouts, FilePath_BuildReadouts);
-            Load(WorldFunctions, FilePath_WorldFunctions);
-            Load(BuildFunctions, FilePath_BuildFunctions);
-
-            void Load<T>(Dictionary<string, T> settings, IFile path)
+            void Inner<T>(Dictionary<string, T> settings, IFile path)
             {
                 if (!path.Exists())
                     // * The settings file doesn't exist, so we should keep the default settings.
@@ -73,6 +70,11 @@ namespace InfoOverload.Settings
                     Debug.LogError($"Settings.Load: Invalid JSON saved in file path: \"{path}\"");
                 }
             }
+            
+            Inner(WorldReadouts, FilePath_WorldReadouts);
+            Inner(BuildReadouts, FilePath_BuildReadouts);
+            Inner(WorldFunctions, FilePath_WorldFunctions);
+            Inner(BuildFunctions, FilePath_BuildFunctions);
         }
 
         public static void Register_World(Readout readout)
@@ -136,7 +138,7 @@ namespace InfoOverload.Settings
     {
         public static WindowSettings Instance { get; private set; }
 
-        public static IFile FilePath => Main.Folder.GetFile("window-settings.txt");
+        public static IFile FilePath => Entrypoint.Folder.GetFile("window-settings.txt");
         public class WindowState
         {
             public int Width { get; set; }

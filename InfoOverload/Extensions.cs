@@ -1,11 +1,11 @@
-using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+using System.Linq;
 using HarmonyLib;
 using SFS;
 using SFS.Parts;
 using SFS.Parts.Modules;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 using static SFS.Builds.BuildGrid;
 
 namespace InfoOverload
@@ -49,9 +49,9 @@ namespace InfoOverload
             }
             Vector2 delta = highest - lowest;
             return new Vector2(Mathf.Abs(delta.x), Mathf.Abs(delta.y));
-        } 
+        }
 
-        static IEnumerable<ConvexPolygon> CreateBuildPolygons(this Part part)
+        private static IEnumerable<ConvexPolygon> CreateBuildPolygons(this Part part)
         {
             PolygonData[] modules = part.GetModules<PolygonData>();
             foreach (PolygonData polygonData in modules)

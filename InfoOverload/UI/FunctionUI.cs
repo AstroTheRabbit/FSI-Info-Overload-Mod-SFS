@@ -1,11 +1,11 @@
-using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
-using UITools;
-using SFS.UI.ModGUI;
-using ModLoader.Helpers;
-using InfoOverload.Settings;
+using System.Linq;
 using InfoOverload.Functions;
+using InfoOverload.Settings;
+using ModLoader.Helpers;
+using SFS.UI.ModGUI;
+using UITools;
+using UnityEngine;
 using LayoutType = SFS.UI.ModGUI.Type;
 
 namespace InfoOverload.UI
@@ -15,7 +15,6 @@ namespace InfoOverload.UI
         private static readonly int windowID = Builder.GetRandomID();
         private static GameObject holder;
         private static ClosableWindow window;
-        private static readonly List<FunctionButton> buttons = new List<FunctionButton>();
 
         public static void Init()
         {
@@ -53,11 +52,11 @@ namespace InfoOverload.UI
                 padding: new RectOffset(5, 5, 5, 5)
             );
             window.EnableScrolling(LayoutType.Vertical);
-            window.RegisterPermanentSaving($"{Main.modNameID}.functions.{SceneUtil.CurrentName}");
+            window.RegisterPermanentSaving($"{Entrypoint.Main.ModNameID}.functions.{SceneUtil.CurrentName}");
 
             foreach (Function function in functions)
             {
-                buttons.Add(FunctionButton.Create(function, window, state.Width - 10, 40));
+                FunctionButton.Create(function, window, state.Width - 10, 40);
                 if (function.Settings.Active)
                 {
                     function.Button.Selected = true;
@@ -76,7 +75,6 @@ namespace InfoOverload.UI
 
         public static void DestroyUI()
         {
-            buttons.Clear();
             if (holder != null)
                 Object.Destroy(holder);
         }

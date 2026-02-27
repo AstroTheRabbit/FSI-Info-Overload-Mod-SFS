@@ -1,12 +1,15 @@
 using System;
-using UnityEngine;
-using UnityEngine.UI;
-using UITools;
-using SFS.UI.ModGUI;
-using ModLoader.Helpers;
 using InfoOverload.Readouts;
 using InfoOverload.Settings;
+using ModLoader.Helpers;
+using SFS.UI.ModGUI;
+using UITools;
+using UnityEngine;
+using UnityEngine.UI;
 using LayoutType = SFS.UI.ModGUI.Type;
+using Object = UnityEngine.Object;
+
+// ReSharper disable Unity.PerformanceCriticalCodeInvocation
 
 namespace InfoOverload.UI
 {
@@ -49,7 +52,7 @@ namespace InfoOverload.UI
                 spacing: 0,
                 padding: new RectOffset(10, 10, 0, 0)
             ).childScaleHeight = true;
-            window.RegisterPermanentSaving($"{Main.modNameID}.readouts.{SceneUtil.CurrentName}");
+            window.RegisterPermanentSaving($"{Entrypoint.Main.ModNameID}.readouts.{SceneUtil.CurrentName}");
 
             label = Builder.CreateLabel(window, state.Width - 20, 0);
             label.TextAlignment = TMPro.TextAlignmentOptions.MidlineLeft;
@@ -66,10 +69,10 @@ namespace InfoOverload.UI
         public static void DestroyUI()
         {
             if (holder != null)
-                GameObject.Destroy(holder);
+                Object.Destroy(holder);
         }
 
-        class ReadoutUpdater : MonoBehaviour
+        private class ReadoutUpdater : MonoBehaviour
         {
             internal void Update()
             {

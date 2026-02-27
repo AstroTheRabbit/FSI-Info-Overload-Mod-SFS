@@ -1,6 +1,6 @@
+using InfoOverload.Settings;
 using SFS.UI;
 using SFS.UI.ModGUI;
-using InfoOverload.Settings;
 using Button = SFS.UI.ModGUI.Button;
 
 namespace InfoOverload.Functions
@@ -41,7 +41,7 @@ namespace InfoOverload.Functions
             this.button = button;
         }
 
-        public static FunctionButton Create(Function function, Window window, int width, int height)
+        public static void Create(Function function, Window window, int width, int height)
         {
             Button button = Builder.CreateButton
             (
@@ -51,7 +51,7 @@ namespace InfoOverload.Functions
                 text: function.Name,
                 onClick: function.Toggle
             );
-            return function.Button = new FunctionButton(button.FieldRef<ButtonPC>("_button"));
+            function.Button = new FunctionButton(button.FieldRef<ButtonPC>("_button"));
         }
     }
 }

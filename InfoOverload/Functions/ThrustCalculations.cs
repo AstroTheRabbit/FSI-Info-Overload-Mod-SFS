@@ -3,7 +3,6 @@ using System.Linq;
 using SFS;
 using SFS.Parts;
 using SFS.Parts.Modules;
-using SFS.World;
 using UnityEngine;
 
 namespace InfoOverload.Functions
@@ -22,6 +21,7 @@ namespace InfoOverload.Functions
         // ? - `SFS.Parts.Modules.BoosterModule.FixedUpdate`
         // ? and modified to be made compatible with the build scene.
 
+        // ReSharper disable once InconsistentNaming
         private static Transform CoM = null;
 
         internal static List<ThrustForceInfo> CalculateThrustForces(Part[] parts, float rotation, float throttle)
@@ -45,6 +45,7 @@ namespace InfoOverload.Functions
             EngineModule[] engines = parts.GetModules<EngineModule>();
             BoosterModule[] boosters = parts.GetModules<BoosterModule>();
 
+            // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (EngineModule engine in engines)
             {
                 if (!engine.engineOn.Value)
@@ -57,7 +58,7 @@ namespace InfoOverload.Functions
                 
                 forces.Add
                 (
-                    new ThrustForceInfo()
+                    new ThrustForceInfo
                     {
                         WorldPosition = relativePoint,
                         ThrustForce = force / mass,
@@ -65,6 +66,7 @@ namespace InfoOverload.Functions
                 );
             }
 
+            // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (BoosterModule booster in boosters)
             {
                 if (!booster.enabled)
@@ -76,7 +78,7 @@ namespace InfoOverload.Functions
 
                 forces.Add
                 (
-                    new ThrustForceInfo()
+                    new ThrustForceInfo
                     {
                         WorldPosition = relativePoint,
                         ThrustForce = force / mass,

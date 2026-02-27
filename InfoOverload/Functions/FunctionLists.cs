@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using UnityEngine.SceneManagement;
 
 namespace InfoOverload.Functions
 {
@@ -8,7 +6,7 @@ namespace InfoOverload.Functions
     {
         public static List<Function> CurrentFunctions => SceneUtil.GetCurrent(WorldFunctions, BuildFunctions);
 
-        public static List<Function> WorldFunctions = new List<Function>()
+        public static readonly List<Function> WorldFunctions = new List<Function>
         {
             new FreeCam(),
             new ChangeOutlines(),
@@ -25,7 +23,7 @@ namespace InfoOverload.Functions
             new DespawnHitbox(),
         };
 
-        public static List<Function> BuildFunctions = new List<Function>()
+        public static readonly List<Function> BuildFunctions = new List<Function>
         {
             new ChangeOutlines(),
             new DisplayCoM(),

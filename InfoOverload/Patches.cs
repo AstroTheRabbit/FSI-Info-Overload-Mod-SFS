@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using HarmonyLib;
-using UnityEngine;
-using SFS.World;
-using SFS.Builds;
-using SFS.World.Maps;
-using SFS.World.Drag;
 using InfoOverload.Settings;
+using SFS.Builds;
+using SFS.World;
+using SFS.World.Drag;
+using SFS.World.Maps;
+using UnityEngine;
 
 namespace InfoOverload
 {
@@ -44,7 +44,7 @@ namespace InfoOverload
                 {
                     if (lockFreeCam.Value && __instance.player.Value is Rocket rocket && newValue.magnitude >= rocket.physics.loader.loadDistance * 1.2f)
                     {
-                        __result = (newValue.normalized * (float)rocket.physics.loader.loadDistance * 1.2f) - newValue.normalized;
+                        __result = newValue.normalized * (float)rocket.physics.loader.loadDistance * 1.2f - newValue.normalized;
                     }
                     else
                     {

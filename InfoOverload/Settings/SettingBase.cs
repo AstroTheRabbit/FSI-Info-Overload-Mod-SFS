@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using UnityEngine;
 using SFS.UI.ModGUI;
+using UnityEngine;
 using Type = System.Type;
 
 namespace InfoOverload.Settings
@@ -85,6 +85,7 @@ namespace InfoOverload.Settings
         public T Value
         {
             get => setting is T typed ? typed : default;
+            // ReSharper disable once MemberCanBeProtected.Global
             set => setting = value;
         }
 
@@ -97,7 +98,7 @@ namespace InfoOverload.Settings
         }
     }
 
-    /// Ensures the correct (de)serialization of `SettingBase<T>` instances in settings dictionaries.
+    /// Ensures the correct (de)serialization of <see cref="SettingBase&lt;T&gt;"/> instances in settings dictionaries.
     public class SettingsDictionary : JsonConverter
     {
         public override bool CanConvert(Type objectType)
@@ -107,21 +108,27 @@ namespace InfoOverload.Settings
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            Dictionary<string, SettingBase> dict = value as Dictionary<string, SettingBase>;
-            writer.WriteStartObject();
-            foreach (KeyValuePair<string, SettingBase> kvp in dict)
+            if (value is Dictionary<string, SettingBase> dict)
             {
-                writer.WritePropertyName(kvp.Key);
-                serializer.Serialize(writer, kvp.Value.setting);
+                writer.WriteStartObject();
+                foreach (KeyValuePair<string, SettingBase> kvp in dict)
+                {
+                    writer.WritePropertyName(kvp.Key);
+                    serializer.Serialize(writer, kvp.Value.setting);
+                }
+                writer.WriteEndObject();
             }
-            writer.WriteEndObject();
+            else
+            {
+                throw new ArgumentException(nameof(value));
+            }
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            if (existingValue is IDictionary<string, SettingBase> dict)
+            switch (existingValue)
             {
-                if (JToken.ReadFrom(reader) is JObject obj)
+                case IDictionary<string, SettingBase> dict when JToken.ReadFrom(reader) is JObject obj:
                 {
                     foreach (KeyValuePair<string, JToken> kvp in obj)
                     {
@@ -136,18 +143,12 @@ namespace InfoOverload.Settings
                     }
                     return dict;
                 }
-                else
-                {
+                case IDictionary<string, SettingBase> _:
                     throw new JsonException("SettingsDictionary.ReadJson: invalid JSON!");
-                }
-            }
-            else if (existingValue is null)
-            {
-                throw new ArgumentNullException($"SettingsDictionary.ReadJson: `{nameof(existingValue)}` is null!");
-            }
-            else
-            {
-                throw new ArgumentNullException($"SettingsDictionary.ReadJson: `{nameof(existingValue)}` is an invalid type ({existingValue.GetType()})!");
+                case null:
+                    throw new ArgumentNullException($"SettingsDictionary.ReadJson: `{nameof(existingValue)}` is null!");
+                default:
+                    throw new ArgumentNullException($"SettingsDictionary.ReadJson: `{nameof(existingValue)}` is an invalid type ({existingValue.GetType()})!");
             }
         }
     }

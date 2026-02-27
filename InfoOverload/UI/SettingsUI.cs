@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
+using InfoOverload.Settings;
+using SFS.UI.ModGUI;
 using TMPro;
 using UITools;
-using SFS.UI.ModGUI;
-using InfoOverload.Settings;
+using UnityEngine;
 using LayoutType = SFS.UI.ModGUI.Type;
 
 namespace InfoOverload.UI
 {
-    public class SettingsUI
+    public static class SettingsUI
     {
 
         public static void Init()
@@ -17,7 +17,7 @@ namespace InfoOverload.UI
             ConfigurationMenu.Add
             (
                 "Info Overload",
-                new (string, Func<Transform, GameObject>)[]
+                new[]
                 {
                     Create("World Readouts", Settings.Settings.WorldReadouts),
                     Create("Build Readouts", Settings.Settings.BuildReadouts),
@@ -29,7 +29,7 @@ namespace InfoOverload.UI
 
         private static (string, Func<Transform, GameObject>) Create<T>(string title, Dictionary<string, T> holders) where T: SettingsHolder
         {
-            GameObject Create(Transform parent)
+            GameObject Inner(Transform parent)
             {
                 Vector2Int size = ConfigurationMenu.ContentSize;
                 Window window = Builder.CreateWindow
@@ -51,11 +51,11 @@ namespace InfoOverload.UI
 
                 int inner_width = size.x - 10;
                 int setting_width = inner_width - 20;
-                int setting_height = 50;
+                const int settingHeight = 50;
 
                 foreach (KeyValuePair<string, T> kvp in holders)
                 {
-                    int inner_height = ((setting_height + 5) * kvp.Value.Settings.Count) + 70;
+                    int inner_height = (settingHeight + 5) * kvp.Value.Settings.Count + 70;
                     Box box_readout = Builder.CreateBox(window, inner_width, inner_height);
                     box_readout.CreateLayoutGroup
                     (
@@ -78,13 +78,13 @@ namespace InfoOverload.UI
                     container_settings.CreateLayoutGroup(LayoutType.Vertical, spacing: 5);
                     foreach (KeyValuePair<string, SettingBase> setting in kvp.Value.Settings)
                     {
-                        Create_Setting(container_settings, setting_width, setting_height, setting.Key, setting.Value);
+                        Create_Setting(container_settings, setting_width, settingHeight, setting.Key, setting.Value);
                     }
                 }
 
                 return window.gameObject;
             }
-            return (title, Create);
+            return (title, Inner);
         }
 
         private static void Create_Setting(Container container, int width, int height, string name, SettingBase setting)

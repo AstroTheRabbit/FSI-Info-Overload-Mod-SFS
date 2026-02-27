@@ -1,5 +1,5 @@
-using InfoOverload.UI;
 using InfoOverload.Functions;
+using InfoOverload.UI;
 using Newtonsoft.Json;
 
 namespace InfoOverload.Settings
