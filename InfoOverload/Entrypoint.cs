@@ -4,11 +4,12 @@ using InfoOverload.UI;
 using JetBrains.Annotations;
 using ModLoader;
 using SFS.IO;
+using UITools;
 
 namespace InfoOverload
 {
     [UsedImplicitly]
-    public class Entrypoint : Mod // ! , IUpdatable
+    public class Entrypoint : Mod, IUpdatable
     {
         public static Entrypoint Main { get; private set; }
         public static DefaultFolder Folder => new DefaultFolder(Main.ModFolder);
@@ -19,7 +20,7 @@ namespace InfoOverload
         public override string MinimumGameVersionNecessary => "1.6.00.16";
         public override string ModVersion => "2.9";
         public override string Description => "Visualises colliders, ranges and other invisible/technical stuff.\nProgrammed by: Astro The Rabbit, VerdiX";
-        public override string IconLink => "https://i.imgur.com/D6heH5y.png";
+        public override string IconLink => "https://raw.githubusercontent.com/AstroTheRabbit/FSI-Info-Overload-Mod-SFS/refs/heads/main/Images/Icon.png";
         public override Dictionary<string, string> Dependencies => new Dictionary<string, string>
         {
             { "UITools", "1.1.5" },
