@@ -156,6 +156,7 @@ namespace InfoOverload.Functions
             Settings.Register(CoMColor, new ColorSetting(Color.yellow));
             Settings.Register(SelectedCoMColor, new ColorSetting(Color.green));
         }
+        
         public override void OnToggle()
         {
             if (Settings.Active)
@@ -165,31 +166,19 @@ namespace InfoOverload.Functions
                     Name,
                     delegate
                     {
-                        Vector2 gravity = Vector2.zero;
-                        Vector2 centerOfMass = Vector2.zero;
+                        Vector2 gravity; MassInfo mass;
                         if (SceneUtil.InBuild)
                         {
                             Location launchpad = Base.planetLoader.spaceCenter.LaunchPadLocation;
                             gravity = launchpad.planet.GetGravity(launchpad.position);
-
-                            float mass = 0;
-                            foreach (Part part in BuildManager.main.buildGrid.activeGrid.partsHolder.parts)
-                            {
-                                mass += part.mass.Value;
-                                centerOfMass += (part.Position + part.centerOfMass.Value * part.orientation) * part.mass.Value;
-                            }
-                            centerOfMass /= mass;
+                            mass = MassCalculations.CalculateMassInfo(BuildManager.main.buildGrid.activeGrid.partsHolder.GetArray());
                         }
-                        else if (SceneUtil.InWorld)
+                        else if (SceneUtil.InWorld && PlayerController.main.player.Value is Rocket rocket)
                         {
-                            if (PlayerController.main.player.Value is Rocket rocket)
-                            {
-                                gravity = rocket.location.planet.Value.GetGravity(rocket.location.position.Value);
-                                centerOfMass = (Vector2) rocket.rb2d.transform.position + (Vector2) rocket.rb2d.transform.TransformVector(rocket.mass.GetCenterOfMass());
-                            }
+                            gravity = rocket.location.planet.Value.GetGravity(rocket.location.position.Value);
+                            mass = MassCalculations.CalculateMassInfo(rocket.partHolder.GetArray());
                         }
-
-                        if (gravity == Vector2.zero)
+                        else
                         {
                             return;
                         }
@@ -199,21 +188,18 @@ namespace InfoOverload.Functions
 
                         if (Settings.Get<bool>(ShowForceOfGravity))
                         {
-                            GLDrawer.DrawLine(centerOfMass, centerOfMass + gravity * Settings.Get<float>(ForceOfGravityScale), color, 0.1f);
+                            GLDrawer.DrawLine(mass.WorldCentreOfMass, mass.WorldCentreOfMass + gravity * Settings.Get<float>(ForceOfGravityScale), color, 0.1f);
                         }
-                        GLDrawer.DrawCircle(centerOfMass, radius, 50, color);
+                        GLDrawer.DrawCircle(mass.WorldCentreOfMass, radius, 50, color);
 
                         if (SceneUtil.InBuild)
                         {
-                            float selectedMass = 0f;
-                            Vector2 selectedCenterOfMass = Vector2.zero;
-                            foreach (Part part in BuildManager.main.buildGrid.GetSelectedParts())
+                            Part[] parts = BuildManager.main.buildGrid.GetSelectedParts();
+                            if (parts.Length > 0)
                             {
-                                selectedMass += part.mass.Value;
-                                selectedCenterOfMass += (part.Position + part.centerOfMass.Value * part.orientation) * part.mass.Value;
+                                mass = MassCalculations.CalculateMassInfo(parts);
+                                GLDrawer.DrawCircle(mass.WorldCentreOfMass, radius, 50, Settings.Get<Color>(SelectedCoMColor));
                             }
-                            selectedCenterOfMass /= selectedMass;
-                            GLDrawer.DrawCircle(selectedCenterOfMass, radius, 50, Settings.Get<Color>(SelectedCoMColor));
                         }
                     }
                 );
@@ -258,64 +244,78 @@ namespace InfoOverload.Functions
                     Name,
                     delegate
                     {
-                        List<ThrustForceInfo> forces = new List<ThrustForceInfo>();
+                        Part[] parts;
+                        MassInfo mass;
+                        float throttle;
+                        Rigidbody2D rigidbody;
                         if (SceneUtil.InBuild)
                         {
-                            forces = ThrustCalculations.CalculateThrustForces(BuildManager.main.buildGrid.activeGrid.partsHolder.GetArray(), 0, 1);
+                            parts = BuildManager.main.buildGrid.activeGrid.partsHolder.GetArray();
+                            mass = MassCalculations.CalculateMassInfo(parts);
+                            throttle = 1;
+                            rigidbody = null;
                         }
-                        else if (SceneUtil.InWorld)
+                        else if (SceneUtil.InWorld && PlayerController.main.player.Value is Rocket rocket)
                         {
-                            if (PlayerController.main.player.Value is Rocket rocket)
-                            {
-                                forces = ThrustCalculations.CalculateThrustForces(rocket.partHolder.GetArray(), rocket.rb2d.rotation, rocket.throttle.output_Throttle.Value);
-                            }
+                            parts = rocket.partHolder.GetArray();
+                            mass = MassCalculations.CalculateMassInfo(parts);
+                            throttle = rocket.throttle.output_Throttle.Value;
+                            rigidbody = rocket.rb2d;
                         }
-                        if (forces.Count == 0)
+                        else
                         {
                             return;
                         }
 
-                        if (Settings.Get<bool>(ShowIndividualForces))
+                        List<ThrustForceInfo> forces = ThrustCalculations.CalculateThrustForceInfo(parts, rigidbody, throttle, mass.Mass);
+                        if (forces.Count > 0)
                         {
-                            float scale = Settings.Get<float>(IndividualForceScale);
-                            Color color = Settings.Get<Color>(IndividualForceColor);
-
-                            foreach (ThrustForceInfo force in forces)
+                            if (Settings.Get<bool>(ShowIndividualForces))
                             {
-                                GLDrawer.DrawLine(force.WorldPosition, force.WorldPosition + scale * force.ThrustForce, color, 0.05f);
+                                float scale = Settings.Get<float>(IndividualForceScale);
+                                Color color = Settings.Get<Color>(IndividualForceColor);
+
+                                foreach (ThrustForceInfo force in forces)
+                                {
+                                    GLDrawer.DrawLine(force.WorldPosition, force.WorldPosition + scale * force.ThrustForce, color, 0.05f);
+                                }
                             }
-                        }
-                        if (Settings.Get<bool>(ShowNetForce))
-                        {
-                            float radius = Settings.Get<float>(DotRadius);
-                            float scale = Settings.Get<float>(NetForceScale);
-                            Color color = Settings.Get<Color>(NetForceColor);
 
-                            Vector2 netThrust = forces.Select(tfi => tfi.ThrustForce).Sum();
-                            Vector2 netCoT = forces.Select(tfi => tfi.WorldPosition * tfi.ThrustForce.magnitude).Sum();
-                            netCoT /= forces.Select(tfi => tfi.ThrustForce.magnitude).Sum();
-
-                            GLDrawer.DrawCircle(netCoT, radius, 50, color);
-                            GLDrawer.DrawLine(netCoT, netCoT + scale * netThrust, color, 0.1f);
-                        }
-
-                        if (SceneUtil.InBuild)
-                        {
-                            forces = ThrustCalculations.CalculateThrustForces(BuildManager.main.buildGrid.GetSelectedParts(), 0, 1);
-                            if (forces.Count == 0)
+                            if (Settings.Get<bool>(ShowNetForce))
                             {
-                                return;
+                                float radius = Settings.Get<float>(DotRadius);
+                                float scale = Settings.Get<float>(NetForceScale);
+                                Color color = Settings.Get<Color>(NetForceColor);
+
+                                Vector2 netThrust = forces.Select(tfi => tfi.ThrustForce).Sum();
+                                Vector2 netCoT = forces.GetCentreOfThrust();
+
+                                GLDrawer.DrawCircle(netCoT, radius, 50, color);
+                                GLDrawer.DrawLine(netCoT, netCoT + scale * netThrust, color, 0.1f);
                             }
-                            float radius = Settings.Get<float>(DotRadius);
-                            float scale = Settings.Get<float>(NetForceScale);
-                            Color color = Settings.Get<Color>(SelectedForceColor);
 
-                            Vector2 netThrust = forces.Select(tfi => tfi.ThrustForce).Sum();
-                            Vector2 netCoT = forces.Select(tfi => tfi.WorldPosition * tfi.ThrustForce.magnitude).Sum();
-                            netCoT /= forces.Select(tfi => tfi.ThrustForce.magnitude).Sum();
+                            if (SceneUtil.InBuild)
+                            {
+                                forces = ThrustCalculations.CalculateThrustForceInfo
+                                (
+                                    BuildManager.main.buildGrid.GetSelectedParts(),
+                                    rigidbody,
+                                    throttle,
+                                    mass.Mass
+                                );
+                                if (forces.Count > 0)
+                                {
+                                    float radius = Settings.Get<float>(DotRadius);
+                                    float scale = Settings.Get<float>(NetForceScale);
+                                    Color color = Settings.Get<Color>(SelectedForceColor);
 
-                            GLDrawer.DrawCircle(netCoT, radius, 50, color);
-                            GLDrawer.DrawLine(netCoT, netCoT + scale * netThrust, color, 0.1f);
+                                    Vector2 netThrust = forces.Select(tfi => tfi.ThrustForce).Sum();
+                                    Vector2 netCoT = forces.GetCentreOfThrust();
+
+                                    GLDrawer.DrawCircle(netCoT, radius, 50, color);
+                                    GLDrawer.DrawLine(netCoT, netCoT + scale * netThrust, color, 0.1f);
+                                }
+                            }
                         }
                     }
                 );
@@ -852,7 +852,7 @@ namespace InfoOverload.Functions
                     {
                         if (PlayerController.main.player.Value is Rocket rocket)
                         {
-                            List<WaterForceInfo> forces = WaterCalculations.CalculateWaterForces(rocket);
+                            List<WaterForceInfo> forces = WaterCalculations.CalculateWaterForceInfo(rocket);
                             float radius = Settings.Get<float>(DotRadius);
                             float buoyantScale = Settings.Get<float>(BuoyantScale);
                             float dragScale = Settings.Get<float>(DragScale);

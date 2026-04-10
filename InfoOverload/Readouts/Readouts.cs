@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using InfoOverload.Functions;
 using InfoOverload.Settings;
 using SFS.Builds;
 using SFS.Parts;
@@ -28,13 +29,19 @@ namespace InfoOverload.Readouts
 
         public override string GetText()
         {
-            if (rocket is Rocket r && r.rb2d)
+            if (rocket && rocket.rb2d)
             {
-                Location loc = r.location.Value;
-                float thrust_engines = rocket.partHolder.GetModules<EngineModule>().Sum(em => em.thrust.Value * em.throttle_Out.Value);
-                float thrust_boosters = rocket.partHolder.GetModules<BoosterModule>().Sum(bm => bm.thrustVector.Value.magnitude * bm.throttle_Out.Value);
-                float thrust = thrust_engines + thrust_boosters;
-                double twr = 9.8 * thrust / (rocket.location.Value.planet.GetGravity(loc.Radius) * rocket.mass.GetMass());
+                Location loc = rocket.location.Value;
+                Part[] parts = rocket.partHolder.GetArray();
+                MassInfo mass = MassCalculations.CalculateMassInfo(parts);
+                List<ThrustForceInfo> thrust = ThrustCalculations.CalculateThrustForceInfo
+                (
+                    parts,
+                    rocket.rb2d,
+                    rocket.throttle.output_Throttle.Value,
+                    mass.Mass
+                );
+                double twr = 9.8 * thrust.Sum(t => t.ThrustForce.magnitude) / (rocket.location.Value.planet.GetGravity(loc.Radius) * mass.Mass);
 
                 float NormaliseAngle(float a)
                 {
@@ -47,6 +54,7 @@ namespace InfoOverload.Readouts
                 info += $"\n• Local TWR: {twr:0.00}";
                 info += $"\n• Acceleration: {acceleration.magnitude:0.00}m/s²";
                 info += $"\n• G-Force: {acceleration.magnitude / 9.8:0.00}g";
+                info += $"\n• Density: {mass.Density:0.00}t/m³";
                 info += $"\n• Global rotation: {NormaliseAngle(rocket.rb2d.rotation).ToString(4, true)}°";
                 info += $"\n• Angular velocity: {rocket.rb2d.angularVelocity.ToString(4, true)}°/s";
 
@@ -101,22 +109,15 @@ namespace InfoOverload.Readouts
         {
             if (BuildManager.main)
             {
-                if (BuildManager.main.buildGrid.activeGrid.partsHolder.parts.Count != 0)
+                Part[] parts = BuildManager.main.buildGrid.activeGrid.partsHolder.GetArray();
+                if (BuildManager.main.buildGrid.activeGrid.partsHolder.parts.Count > 0)
                 {
-                    Vector2 centerOfMass = Vector2.zero;
-                    float mass = 0f;
-
-                    foreach (Part part in BuildManager.main.buildGrid.activeGrid.partsHolder.parts)
-                    {
-                        mass += part.mass.Value;
-                        centerOfMass += (part.Position + part.centerOfMass.Value * part.orientation) * part.mass.Value;
-                    }
-                    centerOfMass /= mass;
-
+                    MassInfo mass = MassCalculations.CalculateMassInfo(parts);
                     Vector2 size = BuildManager.main.buildGrid.activeGrid.partsHolder.parts.GetDimensions();
 
                     string info = "Build Info:";
-                    info += $"\n• CoM position: {centerOfMass.x:0.00}, {centerOfMass.y:0.00}";
+                    info += $"\n• CoM position: {mass.WorldCentreOfMass.x:0.00}, {mass.WorldCentreOfMass.y:0.00}";
+                    info += $"\n• Density: {mass.Density:0.00}t/m³";
                     info += $"\n• Width: {size.x.ToString(3, false)}m";
                     info += $"\n• Height: {size.y.ToString(3, false)}m";
 

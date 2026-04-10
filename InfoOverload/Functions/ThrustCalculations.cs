@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using SFS;
 using SFS.Parts;
 using SFS.Parts.Modules;
@@ -21,10 +22,7 @@ namespace InfoOverload.Functions
         // ? - `SFS.Parts.Modules.BoosterModule.FixedUpdate`
         // ? and modified to be made compatible with the build scene.
 
-        // ReSharper disable once InconsistentNaming
-        private static Transform CoM = null;
-
-        internal static List<ThrustForceInfo> CalculateThrustForces(Part[] parts, float rotation, float throttle)
+        internal static List<ThrustForceInfo> CalculateThrustForceInfo(Part[] parts, [CanBeNull] Rigidbody2D rigidbody, float throttle, float mass)
         {
             List<ThrustForceInfo> forces = new List<ThrustForceInfo>();
 
@@ -32,15 +30,6 @@ namespace InfoOverload.Functions
             {
                 return forces;
             }
-
-            if (CoM == null)
-            {
-                // * Needed to maintain compatibility in the build scene.
-                CoM = new GameObject("Info Overload - Thrust Calculations CoM").transform;
-            }
-            CoM.rotation = Quaternion.Euler(0, 0, rotation);
-            float mass = parts.Select(part => part.mass.Value).Sum();
-            CoM.position = parts.Select(part => (Vector2) part.transform.TransformPoint(part.centerOfMass.Value)).Sum();
 
             EngineModule[] engines = parts.GetModules<EngineModule>();
             BoosterModule[] boosters = parts.GetModules<BoosterModule>();
@@ -54,7 +43,7 @@ namespace InfoOverload.Functions
                 float throttle_out = engine.engineOn.Value ? throttle : 0f;
                 Vector2 vector = engine.thrustNormal.Value * (engine.thrust.Value * 9.8f * throttle_out);
                 Vector2 force = Base.worldBase.AllowsCheats ? (Vector2) engine.transform.TransformVector(vector) : engine.transform.TransformVectorUnscaled(vector);
-                Vector2 relativePoint = CoM.TransformPoint(Transform_Utility.LocalToLocalPoint(engine.transform, CoM, engine.thrustPosition.Value));
+                Vector2 relativePoint = LocalToWorld(engine, engine.thrustPosition.Value);
                 
                 forces.Add
                 (
@@ -74,7 +63,7 @@ namespace InfoOverload.Functions
                 
                 Vector2 vector = booster.thrustVector.Value * 9.8f;
                 Vector2 force = Base.worldBase.AllowsCheats ? (Vector2) booster.transform.TransformVector(vector) : booster.transform.TransformVectorUnscaled(vector);
-                Vector2 relativePoint = CoM.TransformPoint(Transform_Utility.LocalToLocalPoint(booster.transform, CoM, booster.thrustPosition.Value));
+                Vector2 relativePoint = LocalToWorld(booster, booster.thrustPosition.Value);
 
                 forces.Add
                 (
@@ -87,6 +76,23 @@ namespace InfoOverload.Functions
             }
 
             return forces;
+
+            Vector2 LocalToWorld(Component comp, Vector2 pos)
+            {
+                Vector2 world = comp.transform.TransformPoint(pos);
+                if (rigidbody)
+                    world = rigidbody.GetRelativePoint(rigidbody.transform.InverseTransformPoint(world));
+                return world;
+            }
+        }
+
+        internal static Vector2 GetCentreOfThrust(this List<ThrustForceInfo> forces)
+        {
+            return forces
+                .Select(tfi => tfi.WorldPosition * tfi.ThrustForce.magnitude)
+                .Sum() / forces
+                .Select(tfi => tfi.ThrustForce.magnitude)
+                .Sum();
         }
     }
 }

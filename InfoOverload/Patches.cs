@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using HarmonyLib;
 using InfoOverload.Settings;
 using SFS.Builds;
@@ -20,10 +21,12 @@ namespace InfoOverload
         public static bool enableFreeCam = false;
         public static SettingBase<bool> lockFreeCam;
 
-        [HarmonyPatch(typeof(BuildSelector), "DrawRegionalOutline")]
-        internal static class BuildSelector_DrawRegionalOutline
+        [HarmonyPatch(typeof(BuildSelector), nameof(BuildSelector.DrawOutline))]
+        public static class BuildSelector_DrawOutline
         {
-            internal static bool Prefix(ref Color color, ref float width)
+            // Needed to guarantee compatibility with OptiSFS.
+            [HarmonyBefore("moe.verdix.optisfs")]
+            public static bool Prefix(ref Color color, ref float width)
             {
                 if (changeOutlines)
                 {
@@ -35,10 +38,44 @@ namespace InfoOverload
             }
         }
 
-        [HarmonyPatch(typeof(PlayerController), "ClampTrackingOffset")]
-        internal static class PlayerController_ClampTrackingOffset
+        [HarmonyPatch(typeof(StagingDrawer), "I_GLDrawer.Draw")]
+        public static class StagingDrawer_Draw
         {
-            internal static bool Prefix(Vector2 newValue, ref Vector2 __result, PlayerController __instance)
+            public static bool Prefix()
+            {
+                return !(changeOutlines && disableOutlines.Value);
+            }
+
+            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                FieldInfo field_outlineColor = AccessTools.Field(typeof(StagingDrawer), nameof(StagingDrawer.outlineColor));
+                FieldInfo field_outlineWidth = AccessTools.Field(typeof(StagingDrawer), nameof(StagingDrawer.outlineWidth));
+                
+                foreach (CodeInstruction code in instructions)
+                {
+                    if (code.LoadsField(field_outlineColor))
+                    {
+                        yield return CodeInstruction.Call(typeof(StagingDrawer_Draw), nameof(GetOutlineColor));
+                    }
+                    else if (code.LoadsField(field_outlineWidth))
+                    {
+                        yield return CodeInstruction.Call(typeof(StagingDrawer_Draw), nameof(GetOutlineWidth));
+                    }
+                    else
+                    {
+                        yield return code;
+                    }
+                }
+            }
+
+            public static Color GetOutlineColor(StagingDrawer instance) => changeOutlines ? outlinesColor.Value : instance.outlineColor;
+            public static float GetOutlineWidth(StagingDrawer instance) => changeOutlines ? outlinesWidth.Value : instance.outlineWidth;
+        }
+
+        [HarmonyPatch(typeof(PlayerController), "ClampTrackingOffset")]
+        public static class PlayerController_ClampTrackingOffset
+        {
+            public static bool Prefix(Vector2 newValue, ref Vector2 __result, PlayerController __instance)
             {
                 if (enableFreeCam)
                 {
@@ -88,10 +125,10 @@ namespace InfoOverload
         }
         
         [HarmonyPatch(typeof(MapManager), "DrawTrajectories")]
-        internal static class MapDrawer_DrawTrajectories
+        public static class MapDrawer_DrawTrajectories
         {
             [HarmonyPostfix]
-            internal static void Postfix()
+            public static void Postfix()
             {
                 VisualsManager.MapUpdate();
             }

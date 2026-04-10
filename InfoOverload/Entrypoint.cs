@@ -16,8 +16,8 @@ namespace InfoOverload
         public override string ModNameID => "fsi-info-overload";
         public override string DisplayName => "FSI's Info Overload";
         public override string Author => "Fusion Space Industries";
-        public override string MinimumGameVersionNecessary => "1.6.0.14";
-        public override string ModVersion => "2.8";
+        public override string MinimumGameVersionNecessary => "1.6.00.16";
+        public override string ModVersion => "2.9";
         public override string Description => "Visualises colliders, ranges and other invisible/technical stuff.\nProgrammed by: Astro The Rabbit, VerdiX";
         public override string IconLink => "https://i.imgur.com/D6heH5y.png";
         public override Dictionary<string, string> Dependencies => new Dictionary<string, string>

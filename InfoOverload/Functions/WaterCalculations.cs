@@ -21,7 +21,7 @@ namespace InfoOverload.Functions
         // * Moved these water force calculations into a separate file since they're pretty long.
         // ? Copied from `SFS.World.Drag.Water_Rocket.FixedUpdate` with slight modifications.
 
-        internal static List<WaterForceInfo> CalculateWaterForces(Rocket rocket)
+        internal static List<WaterForceInfo> CalculateWaterForceInfo(Rocket rocket)
         {
             List<WaterForceInfo> forces = new List<WaterForceInfo>();
 
@@ -46,7 +46,7 @@ namespace InfoOverload.Functions
 
             Vector2 posNormalized = pos.normalized;
             Vector2 velocityOffset = WorldView.main.velocityOffset.Value;
-            double worldTime = WorldTime.main != null ? WorldTime.main.worldTime : 0.0;
+            double worldTime = WorldTime.main ? WorldTime.main.worldTime : 0.0;
             float mass = rocket.mass.GetMass();
             float waterHeight = (WorldView.ToLocalPosition(pos.normalized * planet.Radius) * worldToLocal).y;
             float gravity = SandboxSettings.main.settings.noGravity ? 0f : (float) planet.GetGravity(magnitude);
