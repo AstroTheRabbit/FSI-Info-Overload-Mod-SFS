@@ -16,10 +16,14 @@ namespace InfoOverload.Readouts
     {
         public override string Name => "Rocket Info";
         private const string AccelerationInterval = "Acceleration Interval";
+        private const string AccurateTWR = "Accurate TWR";
+        private const string AccurateGForce = "Accurate G-Force";
 
         protected override void RegisterSettings()
         {
             Settings.Register(AccelerationInterval, new FloatSetting(0.25f, FloatSetting.IsPositive()));
+            Settings.Register(AccurateTWR, new BoolSetting(true));
+            Settings.Register(AccurateGForce, new BoolSetting(true));
         }
 
         private Rocket rocket = null;
@@ -41,7 +45,6 @@ namespace InfoOverload.Readouts
                     rocket.throttle.output_Throttle.Value,
                     mass.Mass
                 );
-                double twr = 9.8 * thrust.Sum(t => t.ThrustForce.magnitude) / (rocket.location.Value.planet.GetGravity(loc.Radius) * mass.Mass);
 
                 float NormaliseAngle(float a)
                 {
@@ -51,10 +54,23 @@ namespace InfoOverload.Readouts
 
                 string info = "Rocket Info:";
                 info += $"\n• Name: {(rocket.rocketName != "" ? rocket.rocketName : Loc.main.Default_Rocket_Name)}";
-                info += $"\n• Local TWR: {twr:0.00}";
+                
+                if (thrust.Count > 0)
+                {
+                    double twr = Settings.Get<bool>(AccurateTWR)
+                        ? thrust.Select(t => t.ThrustForce).Sum().magnitude
+                        : thrust.Sum(t => t.ThrustForce.magnitude);
+                    twr /= rocket.location.Value.planet.GetGravity(loc.Radius);
+                    info += $"\n• Local TWR: {twr:0.00}";
+                }
+                
+                Double2 gforce = Settings.Get<bool>(AccurateGForce)
+                    ? acceleration - loc.planet.GetGravity(loc.position)
+                    : acceleration;
                 info += $"\n• Acceleration: {acceleration.magnitude:0.00}m/s²";
-                info += $"\n• G-Force: {acceleration.magnitude / 9.8:0.00}g";
+                info += $"\n• G-Force: {gforce.magnitude / 9.8:0.00}g";
                 info += $"\n• Density: {mass.Density:0.00}t/m³";
+                
                 info += $"\n• Global rotation: {NormaliseAngle(rocket.rb2d.rotation).ToString(4, true)}°";
                 info += $"\n• Angular velocity: {rocket.rb2d.angularVelocity.ToString(4, true)}°/s";
 
